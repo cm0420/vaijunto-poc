@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VaiJunto · Pagamento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="pagamento.css">
+</head>
+<body>
+  <main class="app screen" id="pagamento">
+    <div id="etapa-pagar">
+      <header class="topo">
+        <a class="voltar" href="#" data-back aria-label="Voltar para a busca">←</a>
+        <h1>Pagamento e divisão</h1>
+      </header>
+
+      <section class="card resumo" data-anim>
+        <span class="avatar" data-f="iniciais"></span>
+        <div>
+          <strong data-f="motorista"></strong>
+          <span class="sub"><span data-f="horario"></span> · <span data-f="carro"></span></span>
+        </div>
+      </section>
+
+      <section class="bloco" data-anim>
+        <h2>Como o custo é dividido</h2>
+        <div class="assentos" aria-label="Ocupantes do carro">
+          <!-- preenchido pelo JS -->
+        </div>
+        <dl class="conta">
+          <div><dt>Combustível do trajeto</dt><dd data-f="combustivel"></dd></div>
+          <div><dt>Desgaste do carro</dt><dd data-f="desgaste"></dd></div>
+          <div class="sub-total"><dt>Custo total da viagem</dt><dd data-f="custo"></dd></div>
+          <div><dt>Dividido entre</dt><dd><span data-f="ocupantes"></span> pessoas</dd></div>
+          <div><dt>Taxa VaiJunto</dt><dd>Grátis</dd></div>
+          <div class="total"><dt>Sua parte</dt><dd data-f="parte"></dd></div>
+        </dl>
+      </section>
+
+      <section class="bloco" data-anim>
+        <h2>Forma de pagamento</h2>
+        <div class="metodos" role="radiogroup" aria-label="Forma de pagamento">
+          <label class="metodo"><input type="radio" name="metodo" value="pix" checked><span><strong>Pix</strong><small>Na hora, sem taxa</small></span></label>
+          <label class="metodo"><input type="radio" name="metodo" value="cartao"><span><strong>Cartão</strong><small>Crédito •••• 4821</small></span></label>
+          <label class="metodo"><input type="radio" name="metodo" value="dinheiro"><span><strong>Dinheiro</strong><small>Paga ao motorista</small></span></label>
+        </div>
+
+        <div class="painel-metodo" data-painel="pix">
+          <svg class="qr" id="qr" viewBox="0 0 25 25" role="img" aria-label="QR Code Pix de exemplo"></svg>
+          <div class="pix-info">
+            <p>Escaneie ou copie o código Pix. O valor vai pro motorista assim que a viagem terminar.</p>
+            <button type="button" class="btn btn-subtle" data-copiar>Copiar código Pix</button>
+          </div>
+        </div>
+        <div class="painel-metodo" data-painel="cartao" hidden>
+          <p>Cobrança no cartão final <strong>4821</strong> só depois que a viagem terminar.</p>
+        </div>
+        <div class="painel-metodo" data-painel="dinheiro" hidden>
+          <p>Leve o valor trocado. Você confirma o pagamento no app ao descer do carro.</p>
+        </div>
+      </section>
+
+      <div class="rodape-pagar">
+        <button type="button" class="btn btn-primary btn-block" data-pagar>
+          <span class="btn-label">Pagar <span data-f="parte"></span></span>
+          <span class="spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    <section class="confirmado" id="etapa-ok" hidden aria-live="polite">
+      <svg class="check-icon" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27 l7 7 l15 -16"/></svg>
+      <h1>Carona confirmada!</h1>
+      <p><strong data-f="primeiro-nome"></strong> te espera às <strong data-f="horario"></strong>. <span data-f="ponto"></span>.</p>
+      <dl class="card recibo">
+        <div><dt>Trajeto</dt><dd>Campus JK → Centro</dd></div>
+        <div><dt>Pagamento</dt><dd data-f="metodo"></dd></div>
+        <div><dt>Valor</dt><dd data-f="parte"></dd></div>
+        <div><dt>Código</dt><dd>VJ-2611-0472</dd></div>
+      </dl>
+      <a class="btn btn-primary btn-block" href="#" data-restart>Voltar ao início</a>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="pagamento.js"></script>
+</body>
+</html>

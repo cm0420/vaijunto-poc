@@ -1,0 +1,130 @@
+/* ===== BASE PROVISÓRIA (combinado do time) — Integração move p/ shared/base.css ===== */
+:root {
+  --canvas: #ffffff;
+  --soft: #efefef;
+  --softer: #f3f3f3;
+  --pressed: #e2e2e2;
+  --ink: #000000;
+  --ink-2: #282828;
+  --body: #5e5e5e;
+  --mute: #afafaf;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --pill: 999px;
+  --shadow-1: 0 4px 16px rgba(0, 0, 0, .12);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, .16);
+  --font: "Inter", system-ui, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--softer);
+  color: var(--ink);
+  font: 400 16px/24px var(--font);
+}
+h1, h2, h3 { margin: 0; font-weight: 700; }
+p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+.app {
+  max-width: 440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+  background: var(--canvas);
+}
+.card { background: var(--canvas); border-radius: var(--r-xl); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 12px 20px;
+  border: 0; border-radius: var(--pill);
+  font-weight: 500; text-decoration: none; cursor: pointer;
+  transition: background-color .15s;
+}
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: var(--ink-2); }
+.btn-subtle { background: var(--soft); color: var(--ink); }
+.btn-subtle:hover { background: var(--pressed); }
+.btn-block { width: 100%; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* ===== FIM BASE PROVISÓRIA ===== */
+
+/* ===== Tela Pagamento e Divisão de Custos — Dev 3 (Humberto) ===== */
+.topo { display: flex; align-items: center; gap: 12px; padding: 8px 0 20px; }
+.topo h1 { font-size: 24px; line-height: 32px; }
+.voltar {
+  display: grid; place-items: center; width: 40px; height: 40px; flex: none;
+  border-radius: 50%; background: var(--soft); color: var(--ink); text-decoration: none; font-size: 20px;
+}
+.voltar:hover { background: var(--pressed); }
+
+.avatar {
+  display: grid; place-items: center; width: 48px; height: 48px; flex: none; border-radius: 50%;
+  background: var(--ink); color: #fff; font-weight: 700;
+}
+.resumo { display: flex; gap: 12px; align-items: center; padding: 16px; background: var(--softer); }
+.resumo strong { display: block; font-weight: 500; }
+.sub { color: var(--body); font-size: 14px; line-height: 20px; }
+
+.bloco { margin-top: 32px; }
+.bloco h2 { font-size: 20px; line-height: 28px; margin-bottom: 16px; }
+
+.assentos { display: flex; gap: 8px; margin-bottom: 16px; }
+.assento {
+  flex: 1; display: grid; justify-items: center; gap: 4px; padding: 12px 4px;
+  border-radius: var(--r-lg); background: var(--softer); font-size: 12px; line-height: 16px; color: var(--body);
+}
+.assento svg { width: 24px; height: 24px; fill: var(--mute); }
+.assento.voce { background: var(--ink); color: #fff; }
+.assento.voce svg { fill: #fff; }
+.assento.motor svg { fill: var(--ink); }
+
+.conta { margin: 0; display: grid; }
+.conta div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; }
+.conta dt { color: var(--body); }
+.conta dd { margin: 0; font-weight: 500; }
+.conta .sub-total { border-top: 1px solid var(--pressed); }
+.conta .total { border-top: 2px solid var(--ink); padding-top: 14px; }
+.conta .total dt { color: var(--ink); font-weight: 700; }
+.conta .total dd { font-size: 24px; line-height: 32px; font-weight: 700; }
+
+.metodos { display: grid; gap: 8px; }
+.metodo input { position: absolute; opacity: 0; pointer-events: none; }
+.metodo > span {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 16px; border: 2px solid transparent; border-radius: var(--r-xl);
+  background: var(--softer); cursor: pointer; transition: border-color .15s, background-color .15s;
+}
+.metodo small { color: var(--body); font-size: 14px; }
+.metodo input:checked + span { border-color: var(--ink); background: var(--canvas); }
+.metodo input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.painel-metodo { margin-top: 16px; padding: 16px; border-radius: var(--r-xl); background: var(--softer); color: var(--body); font-size: 14px; line-height: 20px; }
+.painel-metodo[data-painel="pix"]:not([hidden]) { display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: center; }
+.qr { width: 112px; height: 112px; padding: 8px; background: #fff; border-radius: var(--r-md); }
+.qr rect { fill: var(--ink); }
+.pix-info { display: grid; gap: 12px; justify-items: start; }
+
+.rodape-pagar { position: sticky; bottom: 0; margin: 24px -16px -32px; padding: 16px 16px 24px; background: linear-gradient(transparent, var(--canvas) 24%); }
+
+.spinner {
+  display: none; width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%;
+  animation: girar .7s linear infinite;
+}
+.is-loading .spinner { display: inline-block; }
+.is-loading .btn-label { opacity: .7; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.confirmado { display: grid; gap: 16px; justify-items: center; text-align: center; padding-top: 48px; }
+.confirmado h1 { font-size: 32px; line-height: 40px; }
+.confirmado > p { color: var(--body); }
+.check-icon { width: 80px; height: 80px; }
+.check-icon circle { fill: var(--ink); }
+.check-icon path { fill: none; stroke: #fff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; }
+.recibo { width: 100%; margin: 8px 0; padding: 8px 16px; background: var(--softer); text-align: left; }
+.recibo div { display: flex; justify-content: space-between; padding: 10px 0; }
+.recibo div + div { border-top: 1px solid var(--pressed); }
+.recibo dt { color: var(--body); }
+.recibo dd { margin: 0; font-weight: 500; }
