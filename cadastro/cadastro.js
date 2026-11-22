@@ -6,6 +6,7 @@
 
   // Entrada da tela
   gsap.timeline({ defaults: { ease: "power3.out" } })
+    .from(".passos", { autoAlpha: 0, duration: d(0.3) })
     .from(".brand", { autoAlpha: 0, y: -8, duration: d(0.4) })
     .from(".hero > *", { autoAlpha: 0, y: 16, stagger: 0.08, duration: d(0.5) }, "-=0.2")
     .from(".tabs", { autoAlpha: 0, y: 12, duration: d(0.4) }, "-=0.3")
@@ -46,6 +47,12 @@
 
   function mostrarSucesso(form) {
     const sucesso = document.getElementById("sucesso");
+    // Integração: nome digitado segue pra tela de Busca via URL
+    const nome = (form.elements.nome ? form.elements.nome.value : "Ana Souza").trim().split(" ")[0] || "Ana";
+    const email = form.querySelector('input[type="email"]').value;
+    sucesso.querySelector("[data-nome-ok]").textContent = nome;
+    sucesso.querySelector("[data-email-ok]").textContent = email;
+    sucesso.querySelector("[data-next]").href = "../busca/index.html?nome=" + encodeURIComponent(nome);
     gsap.to([form, ".tabs", ".hero"], {
       autoAlpha: 0, y: -12, duration: d(0.3), stagger: 0.04,
       onComplete: () => {

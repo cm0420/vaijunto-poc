@@ -1,7 +1,9 @@
 // Tela Pagamento e Divisão de Custos — Dev 3 (Humberto)
 // Carona mockada; pagamento sempre aprovado.
 (function () {
-  const CARONA = { motorista: "Lucas Pereira", horario: "07:20", carro: "Gol branco", combustivel: 20, desgaste: 4, ocupantes: 4, ponto: "Sai da portaria do Campus JK" };
+  // Integração: carona escolhida na Busca chega via ?carona=ID
+  const CARONA = VJ.carona(VJ.param("carona", 1));
+  document.querySelector("[data-back]").href = "../busca/index.html?nome=" + encodeURIComponent(VJ.param("nome", "Ana"));
 
   const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const d = (s) => (reduz ? 0 : s);
@@ -11,7 +13,7 @@
   const NOMES_METODO = { pix: "Pix", cartao: "Cartão •••• 4821", dinheiro: "Dinheiro" };
 
   const preencher = (campo, valor) => document.querySelectorAll(`[data-f="${campo}"]`).forEach((el) => { el.textContent = valor; });
-  preencher("iniciais", CARONA.motorista.split(" ").map((p) => p[0]).join(""));
+  preencher("iniciais", CARONA.motorista.split(" ").map((p) => p[0]).slice(0, 2).join(""));
   preencher("motorista", CARONA.motorista);
   preencher("primeiro-nome", CARONA.motorista.split(" ")[0]);
   preencher("horario", CARONA.horario);

@@ -1,11 +1,10 @@
 // Tela Busca e Match de Caronas — Dev 2 (Maria)
 // Dados mockados: a busca sempre retorna as mesmas caronas.
 (function () {
-  const CARONAS = [
-    { id: 1, motorista: "Lucas Pereira", nota: "4,9", viagens: 132, horario: "07:20", carro: "Gol branco · QPX-2A41", vagas: 3, preco: 6, match: 96, ponto: "Sai da portaria do Campus JK" },
-    { id: 2, motorista: "Beatriz Lima", nota: "4,8", viagens: 87, horario: "07:35", carro: "Onix prata · RTE-8C19", vagas: 2, preco: 5, match: 88, ponto: "Sai do estacionamento do Bloco II" },
-    { id: 3, motorista: "Rafael Costa", nota: "4,7", viagens: 41, horario: "07:50", carro: "HB20 preto · PWN-5H07", vagas: 1, preco: 7, match: 74, ponto: "Sai do ponto de ônibus da BR-367" },
-  ];
+  // Integração: caronas vêm de shared/caronas.js (mesma fonte da tela de Pagamento)
+  const CARONAS = VJ.CARONAS.map((c) => ({ ...c, preco: VJ.parte(c) }));
+  const nome = VJ.param("nome", "Ana");
+  document.querySelector("[data-nome]").textContent = nome;
 
   const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const d = (s) => (reduz ? 0 : s);
@@ -69,7 +68,7 @@
       vagas: `${c.vagas} ${c.vagas > 1 ? "livres" : "livre"}`, preco: brl(c.preco), ponto: c.ponto,
     };
     Object.entries(campos).forEach(([k, v]) => { sheet.querySelector(`[data-f="${k}"]`).textContent = v; });
-    sheet.querySelector("[data-next]").dataset.carona = c.id;
+    sheet.querySelector("[data-next]").href = `../pagamento/index.html?carona=${c.id}&nome=${encodeURIComponent(nome)}`;
     sheet.hidden = fundo.hidden = false;
     gsap.fromTo(fundo, { autoAlpha: 0 }, { autoAlpha: 1, duration: d(0.25) });
     gsap.fromTo(sheet, { yPercent: 100 }, { yPercent: 0, duration: d(0.45), ease: "power3.out" });

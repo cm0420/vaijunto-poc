@@ -1,0 +1,59 @@
+/* VaiJunto — base compartilhada (Integração: Yago). Tokens inspirados em sistema monocromático de mobilidade. */
+:root {
+  --canvas: #ffffff;
+  --soft: #efefef;
+  --softer: #f3f3f3;
+  --pressed: #e2e2e2;
+  --ink: #000000;
+  --ink-2: #282828;
+  --body: #5e5e5e;
+  --mute: #afafaf;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --pill: 999px;
+  --shadow-1: 0 4px 16px rgba(0, 0, 0, .12);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, .16);
+  --font: "Inter", system-ui, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--softer);
+  color: var(--ink);
+  font: 400 16px/24px var(--font);
+}
+h1, h2, h3 { margin: 0; font-weight: 700; }
+p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+.app {
+  max-width: 440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+  background: var(--canvas);
+}
+.card { background: var(--canvas); border-radius: var(--r-xl); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 12px 20px;
+  border: 0; border-radius: var(--pill);
+  font-weight: 500; text-decoration: none; cursor: pointer;
+  transition: background-color .15s;
+}
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: var(--ink-2); }
+.btn-subtle { background: var(--soft); color: var(--ink); }
+.btn-subtle:hover { background: var(--pressed); }
+.btn-block { width: 100%; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Indicador de etapas do fluxo */
+.passos { margin: 0 -16px 16px; padding: 0 16px 12px; border-bottom: 1px solid var(--soft); }
+.passos ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.passos li { font-size: 12px; line-height: 16px; color: var(--mute); font-weight: 500; }
+.passos li.feito { color: var(--body); }
+.passos li[aria-current="step"] { color: var(--ink); }
+.passos-barra { position: relative; height: 4px; margin-top: 8px; border-radius: 2px; background: var(--soft); overflow: hidden; }
+.passos-barra i { position: absolute; inset: 0; background: var(--ink); transform-origin: left center; border-radius: 2px; }

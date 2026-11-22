@@ -6,13 +6,18 @@
   <title>VaiJunto · Pagamento</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/base.css">
   <link rel="stylesheet" href="pagamento.css">
 </head>
 <body>
   <main class="app screen" id="pagamento">
+    <nav class="passos" aria-label="Etapas">
+      <ol><li class="feito">1. Cadastro</li><li class="feito">2. Carona</li><li aria-current="step">3. Pagamento</li></ol>
+      <div class="passos-barra" aria-hidden="true"><i data-de="0.6667" data-ate="1"></i></div>
+    </nav>
     <div id="etapa-pagar">
       <header class="topo">
-        <a class="voltar" href="#" data-back aria-label="Voltar para a busca">←</a>
+        <a class="voltar" href="../busca/index.html" data-back aria-label="Voltar para a busca">←</a>
         <h1>Pagamento e divisão</h1>
       </header>
 
@@ -80,11 +85,13 @@
         <div><dt>Valor</dt><dd data-f="parte"></dd></div>
         <div><dt>Código</dt><dd>VJ-2611-0472</dd></div>
       </dl>
-      <a class="btn btn-primary btn-block" href="#" data-restart>Voltar ao início</a>
+      <a class="btn btn-primary btn-block" href="../index.html" data-restart>Voltar ao início</a>
     </section>
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="../shared/caronas.js"></script>
+  <script src="../shared/fluxo.js"></script>
   <script src="pagamento.js"></script>
 </body>
 </html>
