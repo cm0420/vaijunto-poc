@@ -4,94 +4,189 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VaiJunto · Pagamento</title>
+  <meta name="description" content="Veja como o custo da carona é dividido e pague a sua parte.">
+  <meta name="theme-color" content="#0e1a16">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="../shared/base.css">
   <link rel="stylesheet" href="pagamento.css">
 </head>
 <body>
-  <main class="app screen" id="pagamento">
-    <nav class="passos" aria-label="Etapas">
-      <ol><li class="feito">1. Cadastro</li><li class="feito">2. Carona</li><li aria-current="step">3. Pagamento</li></ol>
-      <div class="passos-barra" aria-hidden="true"><i data-de="0.6667" data-ate="1"></i></div>
-    </nav>
-    <div id="etapa-pagar">
-      <header class="topo">
-        <a class="voltar" href="../busca/index.html" data-back aria-label="Voltar para a busca">←</a>
-        <h1>Pagamento e divisão</h1>
+  <div class="shell">
+    <main class="painel" id="pagamento">
+      <header class="topbar">
+        <a class="logo" href="../index.html" aria-label="VaiJunto, início"><span class="logo-marca">vj</span>VaiJunto</a>
+        <nav class="passos" data-passo="3"></nav>
       </header>
 
-      <section class="card resumo" data-anim>
-        <span class="avatar" data-f="iniciais"></span>
-        <div>
-          <strong data-f="motorista"></strong>
-          <span class="sub"><span data-f="horario"></span> · <span data-f="carro"></span></span>
-        </div>
-      </section>
-
-      <section class="bloco" data-anim>
-        <h2>Como o custo é dividido</h2>
-        <div class="assentos" aria-label="Ocupantes do carro">
-          <!-- preenchido pelo JS -->
-        </div>
-        <dl class="conta">
-          <div><dt>Combustível do trajeto</dt><dd data-f="combustivel"></dd></div>
-          <div><dt>Desgaste do carro</dt><dd data-f="desgaste"></dd></div>
-          <div class="sub-total"><dt>Custo total da viagem</dt><dd data-f="custo"></dd></div>
-          <div><dt>Dividido entre</dt><dd><span data-f="ocupantes"></span> pessoas</dd></div>
-          <div><dt>Taxa VaiJunto</dt><dd>Grátis</dd></div>
-          <div class="total"><dt>Sua parte</dt><dd data-f="parte"></dd></div>
-        </dl>
-      </section>
-
-      <section class="bloco" data-anim>
-        <h2>Forma de pagamento</h2>
-        <div class="metodos" role="radiogroup" aria-label="Forma de pagamento">
-          <label class="metodo"><input type="radio" name="metodo" value="pix" checked><span><strong>Pix</strong><small>Na hora, sem taxa</small></span></label>
-          <label class="metodo"><input type="radio" name="metodo" value="cartao"><span><strong>Cartão</strong><small>Crédito •••• 4821</small></span></label>
-          <label class="metodo"><input type="radio" name="metodo" value="dinheiro"><span><strong>Dinheiro</strong><small>Paga ao motorista</small></span></label>
+      <!-- Etapa: pagar -->
+      <section class="etapa" id="etapa-pagar" aria-labelledby="titulo-pagar">
+        <div class="titulo-linha">
+          <a class="icon-btn" href="../busca/index.html" data-back aria-label="Voltar para as caronas"><svg aria-hidden="true"><use href="#i-voltar"/></svg></a>
+          <h1 id="titulo-pagar">Confirmar e pagar</h1>
         </div>
 
-        <div class="painel-metodo" data-painel="pix">
-          <svg class="qr" id="qr" viewBox="0 0 25 25" role="img" aria-label="QR Code Pix de exemplo"></svg>
-          <div class="pix-info">
-            <p>Escaneie ou copie o código Pix. O valor vai pro motorista assim que a viagem terminar.</p>
-            <button type="button" class="btn btn-subtle" data-copiar>Copiar código Pix</button>
+        <article class="resumo">
+          <span class="avatar" data-avatar></span>
+          <div class="resumo-txt">
+            <strong data-f="motorista"></strong>
+            <span class="muted"><span data-f="carro"></span> · <span data-f="placa"></span></span>
           </div>
-        </div>
-        <div class="painel-metodo" data-painel="cartao" hidden>
-          <p>Cobrança no cartão final <strong>4821</strong> só depois que a viagem terminar.</p>
-        </div>
-        <div class="painel-metodo" data-painel="dinheiro" hidden>
-          <p>Leve o valor trocado. Você confirma o pagamento no app ao descer do carro.</p>
+          <div class="resumo-horas"><b data-f="saida"></b><i></i><b data-f="chegada"></b></div>
+        </article>
+
+        <section class="bloco" aria-labelledby="titulo-divisao">
+          <div class="bloco-topo">
+            <h2 id="titulo-divisao">Como o custo é dividido</h2>
+            <span class="tag" data-f="km"></span>
+          </div>
+          <div class="barra-cotas" aria-hidden="true"></div>
+          <ul class="legenda" aria-label="Quem divide a viagem"></ul>
+          <dl class="conta">
+            <div><dt>Combustível do trajeto</dt><dd data-f="combustivel"></dd></div>
+            <div><dt>Desgaste do carro</dt><dd data-f="desgaste"></dd></div>
+            <div class="conta-total"><dt>Custo da viagem ÷ <span data-f="ocupantes"></span> pessoas</dt><dd data-f="custo"></dd></div>
+          </dl>
+          <p class="dica" data-dica><svg class="ico" aria-hidden="true"><use href="#i-pessoas"/></svg><span></span></p>
+        </section>
+
+        <section class="bloco" aria-labelledby="titulo-extras">
+          <h2 id="titulo-extras">Gorjeta e cupom</h2>
+          <div class="chips gorjeta" role="radiogroup" aria-label="Gorjeta para o motorista">
+            <label class="chip"><input type="radio" name="gorjeta" value="0" checked><span>Sem gorjeta</span></label>
+            <label class="chip"><input type="radio" name="gorjeta" value="1"><span>+ R$ 1</span></label>
+            <label class="chip"><input type="radio" name="gorjeta" value="2"><span>+ R$ 2</span></label>
+            <label class="chip"><input type="radio" name="gorjeta" value="3"><span>+ R$ 3</span></label>
+          </div>
+          <div class="field" id="field-cupom">
+            <label class="field-label" for="cupom">Cupom</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-cupom"/></svg>
+              <input id="cupom" type="text" placeholder="Ex.: CALOURO" autocapitalize="characters" aria-describedby="cupom-msg">
+              <button type="button" class="btn btn-soft btn-sm" data-aplicar>Aplicar</button>
+            </div>
+            <p class="field-msg" id="cupom-msg">No protótipo, o cupom CALOURO dá 10% de desconto.</p>
+          </div>
+        </section>
+
+        <section class="bloco" aria-labelledby="titulo-metodo">
+          <h2 id="titulo-metodo">Forma de pagamento</h2>
+          <div class="metodos" role="radiogroup" aria-labelledby="titulo-metodo">
+            <label class="metodo"><input type="radio" name="metodo" value="pix" checked><span><svg class="ico" aria-hidden="true"><use href="#i-pix"/></svg><b>Pix</b><small>Na hora</small></span></label>
+            <label class="metodo"><input type="radio" name="metodo" value="cartao"><span><svg class="ico" aria-hidden="true"><use href="#i-cartao"/></svg><b>Cartão</b><small>Crédito</small></span></label>
+            <label class="metodo"><input type="radio" name="metodo" value="dinheiro"><span><svg class="ico" aria-hidden="true"><use href="#i-dinheiro"/></svg><b>Dinheiro</b><small>No carro</small></span></label>
+          </div>
+
+          <div class="painel-metodo" data-painel="pix">
+            <div class="pix">
+              <svg class="qr" id="qr" viewBox="0 0 29 29" role="img" aria-label="QR Code Pix ilustrativo"></svg>
+              <div class="pix-info">
+                <span class="tag tag-brand"><svg class="ico" aria-hidden="true"><use href="#i-relogio"/></svg>Expira em <b data-expira>10:00</b></span>
+                <p>Abra o app do banco, escolha Pix e leia o código. Ou copie e cole:</p>
+                <code class="copia-cola" data-copia>00020126vaijunto.example/pix/VJ2611</code>
+                <button type="button" class="btn btn-soft btn-sm" data-copiar><svg class="ico" aria-hidden="true"><use href="#i-copiar"/></svg><span>Copiar código</span></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="painel-metodo" data-painel="cartao" hidden>
+            <div class="cartao-preview" aria-hidden="true">
+              <div class="cartao-face">
+                <div class="cartao-topo"><span class="chip-ouro"></span><span data-bandeira>VISA</span></div>
+                <div class="cartao-num" data-prev-num>•••• •••• •••• ••••</div>
+                <div class="cartao-pe"><span data-prev-nome>NOME NO CARTÃO</span><span data-prev-val>MM/AA</span></div>
+              </div>
+            </div>
+            <div class="cartao-campos">
+              <div class="field cc-num">
+                <label class="field-label" for="cc-num">Número do cartão</label>
+                <div class="field-box"><input id="cc-num" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19"></div>
+              </div>
+              <div class="field cc-nome">
+                <label class="field-label" for="cc-nome">Nome impresso</label>
+                <div class="field-box"><input id="cc-nome" autocomplete="cc-name" placeholder="ANA SOUZA"></div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="cc-val">Validade</label>
+                <div class="field-box"><input id="cc-val" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA" maxlength="5"></div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="cc-cvv">CVV</label>
+                <div class="field-box"><input id="cc-cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="painel-metodo" data-painel="dinheiro" hidden>
+            <p class="dica"><svg class="ico" aria-hidden="true"><use href="#i-dinheiro"/></svg><span>Leve o valor trocado. Você confirma o pagamento no app quando descer do carro.</span></p>
+          </div>
+        </section>
+
+        <div class="rodape-pagar">
+          <dl class="totais">
+            <div><dt>Sua parte</dt><dd data-f="parte"></dd></div>
+            <div data-linha-gorjeta hidden><dt>Gorjeta</dt><dd data-f="gorjeta"></dd></div>
+            <div data-linha-desconto hidden><dt>Cupom CALOURO</dt><dd data-f="desconto"></dd></div>
+          </dl>
+          <button type="button" class="btn btn-brand btn-block" data-pagar>
+            <span class="btn-label">Pagar <span data-f="total"></span></span><span class="spinner" aria-hidden="true"></span>
+          </button>
         </div>
       </section>
 
-      <div class="rodape-pagar">
-        <button type="button" class="btn btn-primary btn-block" data-pagar>
-          <span class="btn-label">Pagar <span data-f="parte"></span></span>
-          <span class="spinner" aria-hidden="true"></span>
-        </button>
-      </div>
-    </div>
+      <!-- Etapa: confirmado -->
+      <section class="etapa ok" id="etapa-ok" hidden aria-live="polite" aria-labelledby="titulo-ok">
+        <svg class="selo" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36"/><path d="M25 41 l10 10 l21 -22"/></svg>
+        <h1 id="titulo-ok">Vaga garantida!</h1>
+        <p class="muted"><span data-f="primeiro"></span> te espera às <b data-f="saida"></b>: <span data-f="ponto"></span>.</p>
+        <div class="ticket">
+          <div class="ticket-topo">
+            <span class="muted">Código da reserva</span>
+            <b class="ticket-cod">VJ-2611-0472</b>
+          </div>
+          <dl class="ticket-dados">
+            <div><dt>Motorista</dt><dd data-f="motorista"></dd></div>
+            <div><dt>Embarque</dt><dd data-f="saida"></dd></div>
+            <div><dt>Pagamento</dt><dd data-f="metodo"></dd></div>
+            <div><dt>Total</dt><dd data-f="total"></dd></div>
+          </dl>
+        </div>
+        <button type="button" class="btn btn-primary btn-block" data-acompanhar>Acompanhar a carona <svg class="ico" aria-hidden="true"><use href="#i-seta"/></svg></button>
+        <a class="btn btn-ghost btn-block" href="../index.html" data-restart>Voltar ao início</a>
+      </section>
 
-    <section class="confirmado" id="etapa-ok" hidden aria-live="polite">
-      <svg class="check-icon" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M15 27 l7 7 l15 -16"/></svg>
-      <h1>Carona confirmada!</h1>
-      <p><strong data-f="primeiro-nome"></strong> te espera às <strong data-f="horario"></strong>. <span data-f="ponto"></span>.</p>
-      <dl class="card recibo">
-        <div><dt>Trajeto</dt><dd>Campus JK → Centro</dd></div>
-        <div><dt>Pagamento</dt><dd data-f="metodo"></dd></div>
-        <div><dt>Valor</dt><dd data-f="parte"></dd></div>
-        <div><dt>Código</dt><dd>VJ-2611-0472</dd></div>
-      </dl>
-      <a class="btn btn-primary btn-block" href="../index.html" data-restart>Voltar ao início</a>
-    </section>
-  </main>
+      <!-- Etapa: acompanhar -->
+      <section class="etapa" id="etapa-acompanhar" hidden aria-labelledby="titulo-acomp">
+        <span class="tag tag-brand ao-vivo-tag"><i></i>Viagem em andamento</span>
+        <h1 id="titulo-acomp">Chegando no Centro em <span data-eta>15 min</span></h1>
+        <div class="progresso" aria-hidden="true"><i></i></div>
+        <div class="progresso-legenda muted"><span>Campus JK</span><span data-km-falta>9,3 km</span><span>Centro</span></div>
+        <article class="resumo">
+          <span class="avatar" data-avatar></span>
+          <div class="resumo-txt">
+            <strong data-f="motorista"></strong>
+            <span class="muted"><span data-f="carro"></span></span>
+          </div>
+          <button type="button" class="icon-btn" data-mock="Ligação: fora do escopo do protótipo" aria-label="Ligar para o motorista"><svg aria-hidden="true"><use href="#i-ligar"/></svg></button>
+          <button type="button" class="icon-btn" data-mock="Chat: fora do escopo do protótipo" aria-label="Mandar mensagem"><svg aria-hidden="true"><use href="#i-chat"/></svg></button>
+        </article>
+        <button type="button" class="btn btn-soft btn-block" data-mock="Link do trajeto copiado">Compartilhar trajeto com alguém</button>
+        <a class="btn btn-ghost btn-block" href="../index.html" data-restart>Voltar ao início</a>
+      </section>
+    </main>
+
+    <aside class="palco" aria-label="Mapa da viagem">
+      <div class="mapa" id="mapa"></div>
+    </aside>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="../shared/caronas.js"></script>
   <script src="../shared/fluxo.js"></script>
+  <script src="../shared/mapa.js"></script>
   <script src="pagamento.js"></script>
 </body>
 </html>

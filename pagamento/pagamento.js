@@ -1,86 +1,210 @@
 // Tela Pagamento e Divisão de Custos — Dev 3 (Humberto)
-// Carona mockada; pagamento sempre aprovado.
+// Mock: pagamento sempre aprovado; cupom CALOURO dá 10%; acompanhamento simula a viagem no mapa.
 (function () {
-  // Integração: carona escolhida na Busca chega via ?carona=ID
-  const CARONA = VJ.carona(VJ.param("carona", 1));
-  document.querySelector("[data-back]").href = "../busca/index.html?nome=" + encodeURIComponent(VJ.param("nome", "Ana"));
+  const d = VJ.d;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-  const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const d = (s) => (reduz ? 0 : s);
-  const brl = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  const custo = CARONA.combustivel + CARONA.desgaste;
-  const parte = custo / CARONA.ocupantes;
-  const NOMES_METODO = { pix: "Pix", cartao: "Cartão •••• 4821", dinheiro: "Dinheiro" };
+  const c = VJ.carona(VJ.param("carona", 1));
+  const nome = VJ.param("nome", "Ana");
+  const parte = VJ.parte(c);
+  const custo = c.combustivel + c.desgaste;
+  let gorjeta = 0, desconto = 0;
+  const total = () => Math.max(0, parte + gorjeta - desconto);
 
-  const preencher = (campo, valor) => document.querySelectorAll(`[data-f="${campo}"]`).forEach((el) => { el.textContent = valor; });
-  preencher("iniciais", CARONA.motorista.split(" ").map((p) => p[0]).slice(0, 2).join(""));
-  preencher("motorista", CARONA.motorista);
-  preencher("primeiro-nome", CARONA.motorista.split(" ")[0]);
-  preencher("horario", CARONA.horario);
-  preencher("carro", CARONA.carro);
-  preencher("ponto", CARONA.ponto);
-  preencher("combustivel", brl(CARONA.combustivel));
-  preencher("desgaste", brl(CARONA.desgaste));
-  preencher("custo", brl(custo));
-  preencher("ocupantes", CARONA.ocupantes);
-  preencher("parte", brl(parte));
+  const preencher = (campo, valor) => $$(`[data-f="${campo}"]`).forEach((el) => { el.textContent = valor; });
+  $("[data-back]").href = "../busca/index.html?nome=" + encodeURIComponent(nome);
+  $$("[data-avatar]").forEach((a) => { a.textContent = VJ.iniciais(c.motorista); a.style.setProperty("--hue", c.hue); });
+  preencher("motorista", c.motorista);
+  preencher("primeiro", c.motorista.split(" ")[0]);
+  preencher("carro", c.carro);
+  preencher("placa", c.placa);
+  preencher("saida", c.saida);
+  preencher("chegada", c.chegada);
+  preencher("ponto", c.ponto);
+  preencher("km", `${VJ.ROTA_INFO.km.toLocaleString("pt-BR")} km`);
+  preencher("combustivel", VJ.brl(c.combustivel));
+  preencher("desgaste", VJ.brl(c.desgaste));
+  preencher("custo", VJ.brl(custo));
+  preencher("ocupantes", c.ocupantes);
+  preencher("parte", VJ.brl(parte));
 
-  // Assentos: motorista + passageiros, "você" destacado
-  const pessoa = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>';
-  const rotulos = ["Motorista", "Você", ...Array(CARONA.ocupantes - 2).fill("Passageiro")];
-  document.querySelector(".assentos").innerHTML = rotulos.map((r, i) =>
-    `<span class="assento${i === 0 ? " motor" : ""}${i === 1 ? " voce" : ""}">${pessoa}${r}<b>${brl(parte)}</b></span>`).join("");
+  // ---------- Barra de cotas ----------
+  const pessoas = ["Motorista", "Você", ...Array(c.ocupantes - 2).fill("Outro passageiro")];
+  $(".barra-cotas").innerHTML = pessoas.map((p, i) =>
+    `<span class="cota${i === 0 ? " motor" : i === 1 ? " voce" : ""}">${VJ.brl(parte)}</span>`).join("");
+  $(".legenda").innerHTML = [["motor", c.motorista.split(" ")[0] + " (motorista)"], ["voce", "Você"], ["", "Outros passageiros"]]
+    .slice(0, c.ocupantes > 2 ? 3 : 2).map(([k, t]) => `<li class="${k}"><i></i>${t}</li>`).join("");
+  const dica = $("[data-dica]");
+  const vagasDepois = c.vagas - 1;
+  if (vagasDepois > 0) {
+    dica.querySelector("span").textContent = `Ainda sobra${vagasDepois > 1 ? "m" : ""} ${vagasDepois} ${vagasDepois > 1 ? "vagas" : "vaga"}. Se mais alguém entrar, sua parte cai para ${VJ.brl(custo / (c.ocupantes + 1))} e a diferença volta pra você.`;
+  } else dica.hidden = true;
 
-  // QR Code ilustrativo (padrão fixo, não é Pix real)
-  const qr = document.getElementById("qr");
-  let rects = "";
-  const finder = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7"/><rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff" style="fill:#fff"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3"/>`;
-  for (let y = 0; y < 25; y++) for (let x = 0; x < 25; x++) {
-    const emFinder = (x < 8 && y < 8) || (x > 16 && y < 8) || (x < 8 && y > 16);
-    if (!emFinder && ((x * 7 + y * 13 + x * y) % 5 < 2)) rects += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  // ---------- QR ilustrativo ----------
+  (function desenharQR() {
+    const N = 29;
+    let r = "";
+    const finder = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7"/><rect class="qr-branco" x="${x + 1}" y="${y + 1}" width="5" height="5"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3"/>`;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const finderArea = (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
+      if (!finderArea && ((x * 31 + y * 17 + x * y * 7) % 7 < 3)) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02"/>`;
+    }
+    $("#qr").innerHTML = r + finder(0, 0) + finder(N - 7, 0) + finder(0, N - 7);
+  })();
+
+  // ---------- Totais ----------
+  function atualizarTotais() {
+    preencher("gorjeta", "+ " + VJ.brl(gorjeta));
+    preencher("desconto", "− " + VJ.brl(desconto));
+    $("[data-linha-gorjeta]").hidden = !gorjeta;
+    $("[data-linha-desconto]").hidden = !desconto;
+    const alvo = { v: parseFloat(($("[data-pagar] [data-f=total]").dataset.v || total())) };
+    gsap.to(alvo, {
+      v: total(), duration: d(0.4), ease: "power2.out",
+      onUpdate: () => { $$("[data-f=total]").forEach((el) => { el.textContent = VJ.brl(Math.round(alvo.v * 100) / 100); el.dataset.v = alvo.v; }); },
+    });
   }
-  qr.innerHTML = rects + finder(0, 0) + finder(18, 0) + finder(0, 18);
+  atualizarTotais();
+  $$('input[name="gorjeta"]').forEach((r) => r.addEventListener("change", () => { gorjeta = Number(r.value); atualizarTotais(); }));
 
-  // Entrada
-  gsap.timeline({ defaults: { ease: "power3.out" } })
-    .from(".topo", { autoAlpha: 0, y: -8, duration: d(0.4) })
-    .from("[data-anim]", { autoAlpha: 0, y: 20, stagger: 0.1, duration: d(0.5) }, "-=0.2")
-    .from(".assento", { autoAlpha: 0, scale: 0.8, stagger: 0.06, duration: d(0.35), ease: "back.out(2)" }, "-=0.4")
-    .from(".rodape-pagar", { autoAlpha: 0, y: 24, duration: d(0.4) }, "-=0.3");
+  // ---------- Cupom ----------
+  const campoCupom = $("#field-cupom");
+  $("[data-aplicar]").addEventListener("click", () => {
+    const cod = $("#cupom").value.trim().toUpperCase();
+    const msg = $("#cupom-msg");
+    if (cod === "CALOURO") {
+      desconto = Math.round(parte * 0.1 * 100) / 100;
+      campoCupom.classList.remove("is-erro"); campoCupom.classList.add("is-ok");
+      msg.textContent = `Cupom aplicado: ${VJ.brl(desconto)} de desconto.`;
+      VJ.toast("Cupom CALOURO aplicado", "cupom");
+    } else {
+      desconto = 0;
+      campoCupom.classList.remove("is-ok"); campoCupom.classList.add("is-erro");
+      msg.textContent = cod ? "Esse cupom não existe. No protótipo, use CALOURO." : "Digite um cupom.";
+      gsap.fromTo(campoCupom, { x: -6 }, { x: 0, duration: d(0.4), ease: "elastic.out(1, 0.3)" });
+    }
+    atualizarTotais();
+  });
+  $("#cupom").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("[data-aplicar]").click(); } });
 
-  // Troca de método
-  document.querySelectorAll('input[name="metodo"]').forEach((r) => r.addEventListener("change", () => {
-    document.querySelectorAll("[data-painel]").forEach((p) => { p.hidden = p.dataset.painel !== r.value; });
-    gsap.from(`[data-painel="${r.value}"]`, { autoAlpha: 0, y: 8, duration: d(0.3) });
+  // ---------- Método ----------
+  $$('input[name="metodo"]').forEach((r) => r.addEventListener("change", () => {
+    $$("[data-painel]").forEach((p) => { p.hidden = p.dataset.painel !== r.value; });
+    gsap.from(`[data-painel="${r.value}"]`, { opacity: 0, y: 10, duration: d(0.3) });
+    if (r.value === "cartao") gsap.from(".cartao-face", { rotationY: -25, opacity: 0, duration: d(0.6), ease: "power3.out" });
   }));
 
-  // Copiar código Pix (mock)
-  document.querySelector("[data-copiar]").addEventListener("click", (e) => {
+  // Pix: contador e copiar
+  let seg = 600;
+  setInterval(() => { seg = Math.max(0, seg - 1); $("[data-expira]").textContent = `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, "0")}`; }, 1000);
+  $("[data-copiar]").addEventListener("click", (e) => {
     const btn = e.currentTarget;
-    btn.textContent = "Código copiado ✓";
-    gsap.fromTo(btn, { scale: 0.94 }, { scale: 1, duration: d(0.4), ease: "back.out(3)" });
-    setTimeout(() => { btn.textContent = "Copiar código Pix"; }, 2000);
+    try { navigator.clipboard && navigator.clipboard.writeText($("[data-copia]").textContent); } catch (_) { /* mock */ }
+    btn.querySelector("span").textContent = "Copiado!";
+    gsap.fromTo(btn, { scale: 0.92 }, { scale: 1, duration: d(0.4), ease: "back.out(3)" });
+    setTimeout(() => { btn.querySelector("span").textContent = "Copiar código"; }, 2000);
   });
 
-  // Pagar → confirmado
-  document.querySelector("[data-pagar]").addEventListener("click", (e) => {
+  // Cartão: preview ao vivo
+  const ccNum = $("#cc-num"), ccNome = $("#cc-nome"), ccVal = $("#cc-val"), ccCvv = $("#cc-cvv");
+  ccNum.addEventListener("input", () => {
+    const n = ccNum.value.replace(/\D/g, "").slice(0, 16);
+    ccNum.value = n.replace(/(\d{4})(?=\d)/g, "$1 ");
+    $("[data-prev-num]").textContent = (n + "•".repeat(16 - n.length)).replace(/(.{4})(?=.)/g, "$1 ");
+    $("[data-bandeira]").textContent = /^5[1-5]/.test(n) ? "MASTERCARD" : /^3[47]/.test(n) ? "AMEX" : /^(636|504|4011)/.test(n) ? "ELO" : "VISA";
+  });
+  ccNome.addEventListener("input", () => { $("[data-prev-nome]").textContent = ccNome.value.toUpperCase() || "NOME NO CARTÃO"; });
+  ccVal.addEventListener("input", () => {
+    const n = ccVal.value.replace(/\D/g, "").slice(0, 4);
+    ccVal.value = n.length > 2 ? `${n.slice(0, 2)}/${n.slice(2)}` : n;
+    $("[data-prev-val]").textContent = ccVal.value || "MM/AA";
+  });
+  ccCvv.addEventListener("focus", () => gsap.to(".cartao-face", { rotationY: 180, duration: d(0.5), ease: "power2.inOut", onUpdate() { if (this.progress() > 0.5) $(".cartao-face").style.visibility = "hidden"; } }));
+  ccCvv.addEventListener("blur", () => { $(".cartao-face").style.visibility = ""; gsap.to(".cartao-face", { rotationY: 0, duration: d(0.5), ease: "power2.inOut" }); });
+
+  // ---------- Entrada ----------
+  gsap.timeline({ defaults: { ease: "power3.out" } })
+    .from(".topbar", { autoAlpha: 0, y: -10, duration: d(0.4) })
+    .from("#etapa-pagar > :not(.rodape-pagar)", { opacity: 0, y: 18, stagger: 0.07, duration: d(0.5) }, "-=0.2")
+    .from(".cota", { scaleX: 0, stagger: 0.08, duration: d(0.5), ease: "power2.out" }, "-=0.6")
+    .from(".rodape-pagar", { yPercent: 100, duration: d(0.5) }, "-=0.5");
+
+  // ---------- Mapa ----------
+  const m = VJ.mapa("mapa", { padding: [70, 70] });
+  m.rota();
+  m.inicioFim({ rotuloInicio: false });
+  m.pin(m.latlng(c.iRota), `<div class="pin-ponto"></div><span class="pin-label baixo">Embarque · ${c.saida}</span>`, [18, 18]);
+  const carro = m.carro(c.iRota, c.hue);
+  carro.el().classList.add("is-ativo");
+
+  // ---------- Pagar ----------
+  const NOMES = { pix: "Pix", cartao: "Cartão de crédito", dinheiro: "Dinheiro" };
+  let atual = $("#etapa-pagar");
+  function irPara(sel, depois) {
+    const prox = $(sel);
+    gsap.to(atual, {
+      opacity: 0, x: -24, duration: d(0.25), ease: "power2.in",
+      onComplete: () => {
+        atual.hidden = true; gsap.set(atual, { clearProps: "all" });
+        prox.hidden = false; atual = prox;
+        $(".painel").scrollTo(0, 0);
+        depois();
+      },
+    });
+  }
+  $("[data-pagar]").addEventListener("click", (e) => {
     const btn = e.currentTarget;
     btn.classList.add("is-loading");
-    btn.disabled = true;
-    preencher("metodo", NOMES_METODO[document.querySelector('input[name="metodo"]:checked').value]);
-    setTimeout(() => {
-      gsap.to("#etapa-pagar", {
-        autoAlpha: 0, y: -16, duration: d(0.3),
-        onComplete: () => {
-          document.getElementById("etapa-pagar").hidden = true;
-          document.getElementById("etapa-ok").hidden = false;
-          window.scrollTo(0, 0);
-          gsap.timeline()
-            .from(".check-icon", { scale: 0, rotation: -45, duration: d(0.5), ease: "back.out(2)" })
-            .fromTo(".check-icon path", { strokeDashoffset: 40 }, { strokeDashoffset: 0, duration: d(0.4) }, "-=0.2")
-            .from(".confirmado > :not(svg)", { autoAlpha: 0, y: 12, stagger: 0.08, duration: d(0.35) }, "-=0.2");
-        },
-      });
-    }, reduz ? 0 : 1000);
+    preencher("metodo", NOMES[$('input[name="metodo"]:checked').value]);
+    setTimeout(() => irPara("#etapa-ok", () => {
+      gsap.to(".passos .passo-linha i", { scaleX: 1, duration: d(0.5) });
+      gsap.timeline({ defaults: { ease: "power3.out" } })
+        .from(".selo", { scale: 0, rotation: -60, duration: d(0.6), ease: "back.out(1.8)" })
+        .fromTo(".selo path", { strokeDashoffset: 50 }, { strokeDashoffset: 0, duration: d(0.45) }, "-=0.25")
+        .from("#etapa-ok > :not(.selo)", { opacity: 0, y: 14, stagger: 0.07, duration: d(0.4) }, "-=0.2");
+      confete();
+    }), VJ.reduz ? 0 : 1200);
   });
+
+  function confete() {
+    if (VJ.reduz) return;
+    const cores = ["#0ba36b", "#c8f169", "#0e1a16", "#f5a524", "#7fd8b4"];
+    const ox = $(".painel").getBoundingClientRect().left + $(".painel").clientWidth / 2;
+    for (let i = 0; i < 70; i++) {
+      const p = document.createElement("i");
+      p.className = "confete";
+      p.style.background = cores[i % cores.length];
+      document.body.append(p);
+      gsap.set(p, { x: ox, y: 200, rotation: gsap.utils.random(0, 360) });
+      gsap.to(p, {
+        x: ox + gsap.utils.random(-260, 260), y: gsap.utils.random(-40, 120), rotation: "+=" + gsap.utils.random(180, 720),
+        duration: gsap.utils.random(0.5, 0.8), ease: "power3.out",
+      });
+      gsap.to(p, { y: window.innerHeight + 40, duration: gsap.utils.random(1.4, 2.2), delay: 0.6, ease: "power1.in", onComplete: () => p.remove() });
+    }
+  }
+
+  // ---------- Acompanhar ----------
+  $("[data-acompanhar]").addEventListener("click", () => irPara("#etapa-acompanhar", () => {
+    gsap.from("#etapa-acompanhar > *", { opacity: 0, y: 14, stagger: 0.06, duration: d(0.4), ease: "power3.out" });
+    m.map.flyTo(m.latlng(c.iRota), 15, { duration: VJ.reduz ? 0 : 1 });
+    const fim = VJ.ROTA.length - 1;
+    const DUR = 24;
+    let quadros = 0;
+    m.andar(carro, c.iRota, fim, DUR, {
+      ease: "power1.inOut", delay: d(1),
+      aoAndar: (i) => {
+        const frac = (i - c.iRota) / (fim - c.iRota);
+        $(".progresso i").style.transform = `scaleX(${frac})`;
+        const min = Math.max(1, Math.round(VJ.ROTA_INFO.min * (1 - frac)));
+        $("[data-eta]").textContent = frac >= 0.999 ? "instantes" : `${min} min`;
+        $("[data-km-falta]").textContent = `faltam ${(VJ.ROTA_INFO.km * (1 - frac)).toFixed(1).replace(".", ",")} km`;
+        if (++quadros % 30 === 0) m.map.panTo(carro.getLatLng(), { animate: !VJ.reduz, duration: 0.6 });
+      },
+      onComplete: () => VJ.toast("Você chegou ao Centro. Boa aula!", "checkCirc"),
+    });
+  }));
+
+  $$("[data-mock]").forEach((b) => b.addEventListener("click", () => VJ.toast(b.dataset.mock, "chat")));
 })();
