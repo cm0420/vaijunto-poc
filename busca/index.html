@@ -4,86 +4,151 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VaiJunto · Buscar carona</title>
+  <meta name="description" content="Encontre quem faz o mesmo trajeto que você entre o Campus JK e o Centro de Diamantina.">
+  <meta name="theme-color" content="#0e1a16">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="../shared/base.css">
   <link rel="stylesheet" href="busca.css">
 </head>
 <body>
-  <main class="app screen" id="busca">
-    <nav class="passos" aria-label="Etapas">
-      <ol><li class="feito">1. Cadastro</li><li aria-current="step">2. Carona</li><li>3. Pagamento</li></ol>
-      <div class="passos-barra" aria-hidden="true"><i data-de="0.3333" data-ate="0.6667"></i></div>
-    </nav>
-    <header class="topo">
-      <p class="saudacao">Olá, <strong data-nome>Ana</strong></p>
-      <h1>Pra onde você vai?</h1>
-    </header>
+  <div class="shell">
+    <main class="painel" id="busca">
+      <header class="topbar">
+        <a class="logo" href="../index.html" aria-label="VaiJunto, início"><span class="logo-marca">vj</span>VaiJunto</a>
+        <nav class="passos" data-passo="2"></nav>
+      </header>
 
-    <form class="card busca-card" id="form-busca">
-      <div class="rota">
-        <span class="rota-linha" aria-hidden="true"><i></i><b></b><i class="fim"></i></span>
-        <div class="rota-campos">
-          <label class="campo">
-            <span class="sr-only">Origem</span>
-            <input type="text" name="origem" value="Campus JK — UFVJM" id="origem">
-          </label>
-          <label class="campo">
-            <span class="sr-only">Destino</span>
-            <input type="text" name="destino" value="Centro — Diamantina" id="destino">
-          </label>
+      <!-- Busca + resultados -->
+      <section id="painel-busca">
+        <header class="saudacao">
+          <p class="muted"><span data-periodo>Bom dia</span>, <strong data-nome>Ana</strong></p>
+          <h1>Pra onde você vai?</h1>
+        </header>
+
+        <form class="busca-card" id="form-busca" autocomplete="off">
+          <div class="rota-campos">
+            <span class="rota-trilho" aria-hidden="true"><i></i><b></b><i class="fim"></i></span>
+            <div class="campo-lugar">
+              <label class="sr-only" for="origem">Saindo de</label>
+              <input id="origem" name="origem" type="text" value="Campus JK — UFVJM" role="combobox" aria-expanded="false" aria-controls="sugestoes-origem" aria-autocomplete="list">
+              <ul class="sugestoes" id="sugestoes-origem" role="listbox" hidden></ul>
+            </div>
+            <div class="campo-lugar">
+              <label class="sr-only" for="destino">Indo para</label>
+              <input id="destino" name="destino" type="text" value="Centro — Mercado Velho" role="combobox" aria-expanded="false" aria-controls="sugestoes-destino" aria-autocomplete="list">
+              <ul class="sugestoes" id="sugestoes-destino" role="listbox" hidden></ul>
+            </div>
+            <button type="button" class="icon-btn trocar" data-trocar aria-label="Inverter origem e destino"><svg aria-hidden="true"><use href="#i-trocar"/></svg></button>
+          </div>
+
+          <div class="quando">
+            <div class="chips" role="radiogroup" aria-label="Dia">
+              <label class="chip"><input type="radio" name="dia" value="hoje" checked><span>Hoje</span></label>
+              <label class="chip"><input type="radio" name="dia" value="amanha"><span>Amanhã</span></label>
+              <label class="chip"><input type="radio" name="dia" value="sexta"><span>Sex, 27</span></label>
+            </div>
+            <div class="quando-linha">
+              <label class="mini-campo">
+                <svg class="ico" aria-hidden="true"><use href="#i-relogio"/></svg>
+                <span class="sr-only">Horário</span>
+                <select name="hora" id="hora">
+                  <option>07:00</option><option selected>07:30</option><option>08:00</option><option>12:00</option><option>18:00</option>
+                </select>
+              </label>
+              <div class="mini-campo passageiros" role="group" aria-label="Passageiros">
+                <svg class="ico" aria-hidden="true"><use href="#i-user"/></svg>
+                <button type="button" data-menos aria-label="Menos um passageiro">−</button>
+                <output id="qtd-passageiros" aria-live="polite">1</output>
+                <button type="button" data-mais aria-label="Mais um passageiro">+</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span class="btn-label">Buscar caronas</span><span class="spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <section class="resultados" id="resultados" hidden aria-labelledby="titulo-resultados">
+          <div class="resultados-topo">
+            <h2 id="titulo-resultados"><span data-qtd>3</span> caronas no seu caminho</h2>
+            <p class="muted">Saindo perto de <span data-hora-busca>07:30</span> · ordenadas por <span data-ordem-nome>match</span></p>
+          </div>
+          <div class="chips filtros" role="radiogroup" aria-label="Ordenar por">
+            <label class="chip filtro"><input type="radio" name="ordem" value="match" checked><span>Melhor match</span></label>
+            <label class="chip filtro"><input type="radio" name="ordem" value="preco"><span>Mais barata</span></label>
+            <label class="chip filtro"><input type="radio" name="ordem" value="saida"><span>Sai antes</span></label>
+            <label class="chip filtro"><input type="radio" name="ordem" value="nota"><span>Melhor nota</span></label>
+          </div>
+          <ul class="lista" id="lista" aria-live="polite"></ul>
+        </section>
+      </section>
+
+      <!-- Detalhe da carona -->
+      <section id="painel-detalhe" hidden aria-labelledby="det-nome">
+        <button type="button" class="icon-btn" data-fechar aria-label="Voltar para a lista"><svg aria-hidden="true"><use href="#i-voltar"/></svg></button>
+
+        <div class="det-topo">
+          <span class="avatar avatar-lg" data-f="iniciais"></span>
+          <div>
+            <h1 id="det-nome" data-f="motorista"></h1>
+            <p class="muted" data-f="curso"></p>
+          </div>
+          <span class="match-anel" data-f-match aria-label="">
+            <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19"/><circle class="anel" cx="22" cy="22" r="19"/></svg>
+            <b data-f="match"></b>
+          </span>
         </div>
-        <button type="button" class="trocar" aria-label="Inverter origem e destino" data-trocar>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v14m0 0-3-3m3 3 3-3M17 20V6m0 0-3 3m3-3 3 3"/></svg>
-        </button>
-      </div>
 
-      <div class="quando" role="radiogroup" aria-label="Quando">
-        <label class="chip"><input type="radio" name="dia" value="hoje" checked><span>Hoje</span></label>
-        <label class="chip"><input type="radio" name="dia" value="amanha"><span>Amanhã</span></label>
-        <label class="chip"><input type="radio" name="dia" value="sexta"><span>Sex, 27</span></label>
-        <label class="chip hora"><span class="sr-only">Horário</span><input type="time" name="hora" value="07:30"></label>
-      </div>
+        <dl class="det-stats">
+          <div><dt>Nota</dt><dd><svg class="ico estrela" aria-hidden="true"><use href="#i-estrela"/></svg><span data-f="nota"></span></dd></div>
+          <div><dt>Viagens</dt><dd data-f="viagens"></dd></div>
+          <div><dt>Vagas</dt><dd data-f="vagas"></dd></div>
+        </dl>
 
-      <button type="submit" class="btn btn-primary btn-block">Buscar caronas</button>
-    </form>
+        <ol class="trajeto">
+          <li><span class="trajeto-hora" data-f="saida"></span><span class="trajeto-ponto"></span><div><strong>Embarque</strong><span class="muted" data-f="ponto"></span></div></li>
+          <li><span class="trajeto-hora" data-f="chegada"></span><span class="trajeto-ponto fim"></span><div><strong>Centro — Mercado Velho</strong><span class="muted">Praça Barão de Guaicuí</span></div></li>
+        </ol>
 
-    <section class="resultados" id="resultados" hidden aria-live="polite">
-      <div class="resultados-topo">
-        <h2><span data-qtd>0</span> caronas no seu trajeto</h2>
-        <p>Ordenadas pelo match com sua rota e horário.</p>
-      </div>
-      <ul class="lista" id="lista"></ul>
-    </section>
-  </main>
+        <div class="det-carro">
+          <svg class="ico" aria-hidden="true"><use href="#i-carro"/></svg>
+          <span data-f="carro"></span>
+          <span class="placa"><small>BRASIL</small><b data-f="placa"></b></span>
+        </div>
 
-  <div class="sheet-fundo" id="sheet-fundo" hidden></div>
-  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-titulo" hidden>
-    <span class="sheet-alca" aria-hidden="true"></span>
-    <div class="sheet-motorista">
-      <span class="avatar" data-f="iniciais"></span>
-      <div>
-        <h2 id="sheet-titulo" data-f="motorista"></h2>
-        <p class="meta"><span data-f="nota"></span> ★ · <span data-f="viagens"></span> viagens</p>
-      </div>
-      <span class="match" data-f="match"></span>
-    </div>
-    <dl class="detalhes">
-      <div><dt>Saída</dt><dd data-f="horario"></dd></div>
-      <div><dt>Carro</dt><dd data-f="carro"></dd></div>
-      <div><dt>Vagas</dt><dd data-f="vagas"></dd></div>
-      <div><dt>Sua parte</dt><dd data-f="preco"></dd></div>
-    </dl>
-    <p class="ponto">📍 <span data-f="ponto"></span></p>
-    <div class="sheet-acoes">
-      <button type="button" class="btn btn-subtle" data-fechar>Voltar</button>
-      <a class="btn btn-primary" href="../pagamento/index.html" data-next>Confirmar carona</a>
-    </div>
-  </section>
+        <div class="tags-linha" data-f-tags></div>
+
+        <figure class="review">
+          <blockquote data-f="review-texto"></blockquote>
+          <figcaption class="muted">— <span data-f="review-autor"></span>, última avaliação</figcaption>
+        </figure>
+
+        <div class="det-rodape">
+          <div><span class="muted">Sua parte</span><strong data-f="preco"></strong></div>
+          <a class="btn btn-brand" href="../pagamento/index.html" data-next>Reservar vaga <svg class="ico" aria-hidden="true"><use href="#i-seta"/></svg></a>
+        </div>
+      </section>
+    </main>
+
+    <aside class="palco" aria-label="Mapa com as caronas">
+      <div class="mapa" id="mapa"></div>
+    </aside>
+  </div>
+
+  <template id="tpl-skeleton">
+    <li class="carona-skel"><span class="skeleton s-av"></span><span class="skeleton s-l1"></span><span class="skeleton s-l2"></span><span class="skeleton s-pr"></span></li>
+  </template>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="../shared/caronas.js"></script>
   <script src="../shared/fluxo.js"></script>
+  <script src="../shared/mapa.js"></script>
   <script src="busca.js"></script>
 </body>
 </html>
