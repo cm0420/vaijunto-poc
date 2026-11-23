@@ -3,105 +3,185 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VaiJunto · Cadastro</title>
+  <title>VaiJunto · Criar conta</title>
+  <meta name="description" content="Caronas entre estudantes da UFVJM: Campus JK ⇄ Centro de Diamantina.">
+  <meta name="theme-color" content="#0e1a16">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="../shared/base.css">
   <link rel="stylesheet" href="cadastro.css">
 </head>
 <body>
-  <main class="app screen" id="cadastro">
-    <nav class="passos" aria-label="Etapas">
-      <ol><li aria-current="step">1. Cadastro</li><li>2. Carona</li><li>3. Pagamento</li></ol>
-      <div class="passos-barra" aria-hidden="true"><i data-de="0" data-ate="0.3333"></i></div>
-    </nav>
-    <header class="brand">
-      <span class="logo" aria-hidden="true">vj</span>
-      <span class="brand-name">VaiJunto</span>
-    </header>
+  <div class="shell">
+    <main class="painel" id="cadastro">
+      <header class="topbar">
+        <a class="logo" href="../index.html" aria-label="VaiJunto, início"><span class="logo-marca">vj</span>VaiJunto</a>
+        <nav class="passos" data-passo="1"></nav>
+      </header>
 
-    <section class="hero" data-anim="hero">
-      <h1>Carona entre quem já vai pro mesmo lugar.</h1>
-      <p class="lead">Crie sua conta com o e-mail da UFVJM e encontre quem faz o seu trajeto.</p>
-    </section>
+      <!-- Etapa 1: formulário -->
+      <section class="etapa" id="etapa-form" aria-labelledby="titulo-form">
+        <span class="tag tag-brand eyebrow">Só para a comunidade UFVJM</span>
+        <h1 id="titulo-form">Divida o caminho até o campus.</h1>
+        <p class="lead muted">São 9 km entre o Campus JK e o Centro. Quem vai junto paga só a sua parte do combustível.</p>
 
-    <div class="tabs" role="tablist" aria-label="Acesso">
-      <span class="tabs-pill" aria-hidden="true"></span>
-      <button class="tab is-active" role="tab" aria-selected="true" aria-controls="form-cadastro" id="tab-cadastro" data-tab="cadastro">Criar conta</button>
-      <button class="tab" role="tab" aria-selected="false" aria-controls="form-login" id="tab-login" data-tab="login">Entrar</button>
-    </div>
-
-    <form class="card form" id="form-cadastro" role="tabpanel" aria-labelledby="tab-cadastro" data-anim="form">
-      <label class="field">
-        <span>Nome completo</span>
-        <input type="text" name="nome" value="Ana Souza" autocomplete="name" required>
-      </label>
-      <label class="field">
-        <span>E-mail institucional</span>
-        <input type="email" name="email" value="ana.souza@ufvjm.edu.br" autocomplete="email" required>
-        <small class="hint">Usamos o e-mail da UFVJM pra confirmar que você é da comunidade.</small>
-      </label>
-      <label class="field">
-        <span>Celular</span>
-        <input type="tel" name="celular" value="(38) 99876-5432" autocomplete="tel" required>
-      </label>
-      <label class="field">
-        <span>Senha</span>
-        <span class="input-wrap">
-          <input type="password" name="senha" value="carona123" autocomplete="new-password" required id="senha">
-          <button type="button" class="ghost-btn" data-toggle-senha aria-controls="senha">Mostrar</button>
-        </span>
-      </label>
-
-      <fieldset class="field">
-        <legend>Como você vai usar?</legend>
-        <div class="chips" role="radiogroup">
-          <label class="chip"><input type="radio" name="perfil" value="passageiro" checked><span>Passageiro</span></label>
-          <label class="chip"><input type="radio" name="perfil" value="motorista"><span>Motorista</span></label>
-          <label class="chip"><input type="radio" name="perfil" value="ambos"><span>Os dois</span></label>
+        <div class="abas" role="tablist" aria-label="Acesso">
+          <span class="abas-pill" aria-hidden="true"></span>
+          <button class="aba is-ativa" role="tab" aria-selected="true" aria-controls="form-cadastro" id="aba-cadastro" data-aba="cadastro">Criar conta</button>
+          <button class="aba" role="tab" aria-selected="false" aria-controls="form-login" id="aba-login" data-aba="login">Já tenho conta</button>
         </div>
-      </fieldset>
 
-      <label class="check">
-        <input type="checkbox" name="termos" checked required>
-        <span>Li e aceito os termos de uso e a política de privacidade.</span>
-      </label>
+        <form class="form" id="form-cadastro" role="tabpanel" aria-labelledby="aba-cadastro" novalidate>
+          <div class="field" data-validar="nome">
+            <label class="field-label" for="nome">Nome completo</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-user"/></svg>
+              <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Como aparece na carteirinha" aria-describedby="nome-msg">
+              <svg class="ico field-status" aria-hidden="true"><use href="#i-checkCirc"/></svg>
+            </div>
+            <p class="field-msg" id="nome-msg"></p>
+          </div>
 
-      <button type="submit" class="btn btn-primary btn-block" data-submit>
-        <span class="btn-label">Criar conta</span>
-        <span class="spinner" aria-hidden="true"></span>
-      </button>
-    </form>
+          <div class="field" data-validar="email">
+            <label class="field-label" for="email">E-mail institucional</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>
+              <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@ufvjm.edu.br" aria-describedby="email-msg">
+              <svg class="ico field-status" aria-hidden="true"><use href="#i-checkCirc"/></svg>
+            </div>
+            <p class="field-msg" id="email-msg">Só aceitamos e-mail @ufvjm.edu.br: é assim que todo mundo aqui é da universidade.</p>
+          </div>
 
-    <form class="card form" id="form-login" role="tabpanel" aria-labelledby="tab-login" hidden>
-      <label class="field">
-        <span>E-mail institucional</span>
-        <input type="email" value="ana.souza@ufvjm.edu.br" autocomplete="email">
-      </label>
-      <label class="field">
-        <span>Senha</span>
-        <input type="password" value="carona123" autocomplete="current-password">
-      </label>
-      <button type="submit" class="btn btn-primary btn-block" data-submit>
-        <span class="btn-label">Entrar</span>
-        <span class="spinner" aria-hidden="true"></span>
-      </button>
-      <button type="button" class="link-btn">Esqueci minha senha</button>
-    </form>
+          <div class="field" data-validar="celular">
+            <label class="field-label" for="celular">Celular com WhatsApp</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-fone"/></svg>
+              <input id="celular" name="celular" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(38) 99999-9999" maxlength="15" aria-describedby="celular-msg">
+              <svg class="ico field-status" aria-hidden="true"><use href="#i-checkCirc"/></svg>
+            </div>
+            <p class="field-msg" id="celular-msg"></p>
+          </div>
 
-    <section class="card sucesso" id="sucesso" hidden aria-live="polite">
-      <svg class="check-icon" viewBox="0 0 52 52" aria-hidden="true">
-        <circle cx="26" cy="26" r="24" />
-        <path d="M15 27 l7 7 l15 -16" />
-      </svg>
-      <h2>Conta criada, <span data-nome-ok>Ana</span>!</h2>
-      <p>Enviamos um link de confirmação pra <strong data-email-ok>ana.souza@ufvjm.edu.br</strong>. Pode seguir enquanto isso.</p>
-      <a class="btn btn-primary btn-block" href="../busca/index.html" data-next>Buscar uma carona</a>
-    </section>
-  </main>
+          <div class="field" data-validar="senha">
+            <label class="field-label" for="senha">Senha</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-cadeado"/></svg>
+              <input id="senha" name="senha" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres" aria-describedby="senha-msg">
+              <button type="button" class="ver-senha" data-ver-senha aria-controls="senha" aria-pressed="false">Mostrar</button>
+            </div>
+            <div class="forca" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <p class="field-msg" id="senha-msg">Use letras e números.</p>
+          </div>
+
+          <fieldset class="field perfil">
+            <legend class="field-label">Como você vai usar?</legend>
+            <div class="perfis">
+              <label class="perfil-op"><input type="radio" name="perfil" value="passageiro" checked><span><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg><b>Passageiro</b><small>Pego carona</small></span></label>
+              <label class="perfil-op"><input type="radio" name="perfil" value="motorista"><span><svg class="ico" aria-hidden="true"><use href="#i-carro"/></svg><b>Motorista</b><small>Ofereço vagas</small></span></label>
+              <label class="perfil-op"><input type="radio" name="perfil" value="ambos"><span><svg class="ico" aria-hidden="true"><use href="#i-pessoas"/></svg><b>Os dois</b><small>Depende do dia</small></span></label>
+            </div>
+          </fieldset>
+
+          <div class="field" data-validar="termos">
+            <label class="aceite">
+              <input type="checkbox" name="termos" id="termos">
+              <span>Concordo com os <a href="#termos" data-sem-link>termos de uso</a> e com o código de convivência das caronas.</span>
+            </label>
+            <p class="field-msg" id="termos-msg"></p>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span class="btn-label">Criar conta</span><span class="spinner" aria-hidden="true"></span>
+          </button>
+          <p class="seguro muted"><svg class="ico" aria-hidden="true"><use href="#i-escudo"/></svg>Seus dados ficam só entre quem divide a carona com você.</p>
+        </form>
+
+        <form class="form" id="form-login" role="tabpanel" aria-labelledby="aba-login" hidden novalidate>
+          <div class="field">
+            <label class="field-label" for="login-email">E-mail institucional</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>
+              <input id="login-email" type="email" autocomplete="email" placeholder="voce@ufvjm.edu.br">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="login-senha">Senha</label>
+            <div class="field-box">
+              <svg class="ico" aria-hidden="true"><use href="#i-cadeado"/></svg>
+              <input id="login-senha" type="password" autocomplete="current-password" placeholder="Sua senha">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <span class="btn-label">Entrar</span><span class="spinner" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-block" data-esqueci>Esqueci minha senha</button>
+        </form>
+      </section>
+
+      <!-- Etapa 2: código de verificação -->
+      <section class="etapa" id="etapa-codigo" hidden aria-labelledby="titulo-codigo">
+        <button type="button" class="icon-btn" data-voltar-form aria-label="Voltar ao formulário"><svg aria-hidden="true"><use href="#i-voltar"/></svg></button>
+        <h1 id="titulo-codigo">Confira seu e-mail</h1>
+        <p class="lead muted">Mandamos um código de 4 dígitos para <strong data-email-enviado></strong>.</p>
+        <form class="form" id="form-codigo" novalidate>
+          <div class="codigo" role="group" aria-label="Código de verificação">
+            <input inputmode="numeric" maxlength="1" aria-label="Dígito 1" autocomplete="one-time-code">
+            <input inputmode="numeric" maxlength="1" aria-label="Dígito 2">
+            <input inputmode="numeric" maxlength="1" aria-label="Dígito 3">
+            <input inputmode="numeric" maxlength="1" aria-label="Dígito 4">
+          </div>
+          <p class="codigo-dica"><span class="tag">Protótipo</span> Qualquer código de 4 dígitos funciona. Ex.: 2611</p>
+          <button type="submit" class="btn btn-primary btn-block" data-confirmar disabled>
+            <span class="btn-label">Confirmar código</span><span class="spinner" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-block" data-reenviar disabled>Reenviar em <span data-contador>0:30</span></button>
+        </form>
+      </section>
+
+      <!-- Etapa 3: pronto -->
+      <section class="etapa pronto" id="etapa-ok" hidden aria-live="polite" aria-labelledby="titulo-ok">
+        <svg class="selo" viewBox="0 0 80 80" aria-hidden="true">
+          <circle class="selo-fundo" cx="40" cy="40" r="36"/>
+          <path class="selo-check" d="M25 41 l10 10 l21 -22"/>
+        </svg>
+        <h1 id="titulo-ok">Tudo pronto, <span data-nome-ok>Ana</span>!</h1>
+        <p class="lead muted">Sua conta está ativa. Agora é só dizer pra onde você vai.</p>
+        <div class="card cartao-perfil">
+          <span class="avatar avatar-lg" data-avatar-ok style="--hue:200">AS</span>
+          <div>
+            <strong data-nome-completo-ok>Ana Souza</strong>
+            <span class="muted" data-email-ok>ana.souza@ufvjm.edu.br</span>
+            <span class="tag tag-brand" data-perfil-ok>Passageiro</span>
+          </div>
+        </div>
+        <a class="btn btn-brand btn-block" href="../busca/index.html" data-next>
+          Buscar minha primeira carona <svg class="ico" aria-hidden="true"><use href="#i-seta"/></svg>
+        </a>
+      </section>
+    </main>
+
+    <aside class="palco" aria-label="Mapa da rota Campus JK – Centro">
+      <div class="mapa" id="mapa"></div>
+      <div class="palco-veu" aria-hidden="true"></div>
+      <div class="ao-vivo card" aria-hidden="true">
+        <span class="ao-vivo-dot"></span>
+        <div class="ao-vivo-txt"><strong data-vivo-titulo>Lucas saiu do Campus JK</strong><span class="muted" data-vivo-sub>3 vagas · R$ 6,00 por pessoa</span></div>
+      </div>
+      <div class="numeros" aria-hidden="true">
+        <div class="numero card"><b>9,3 km</b><span>Campus JK → Centro</span></div>
+        <div class="numero card"><b data-media>R$ 6,00</b><span>sua parte, em média</span></div>
+        <div class="numero card"><b>~15 min</b><span>de carro</span></div>
+      </div>
+    </aside>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="../shared/caronas.js"></script>
   <script src="../shared/fluxo.js"></script>
+  <script src="../shared/mapa.js"></script>
   <script src="cadastro.js"></script>
 </body>
 </html>
