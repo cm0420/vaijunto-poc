@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VaiJunto · Oferecer carona</title>
+  <meta name="description" content="Ofereça as vagas do seu carro no trajeto Campus JK ⇄ Centro e divida o combustível.">
+  <meta name="theme-color" content="#0e1a16">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="oferecer.css">
+</head>
+<body>
+  <div class="shell">
+    <main class="painel" id="oferecer">
+      <header class="topbar">
+        <a class="logo" href="../busca/index.html" aria-label="VaiJunto, início"><span class="logo-marca">vj</span>VaiJunto</a>
+        <nav class="passos" data-passo="2"></nav>
+      </header>
+
+      <!-- Etapa: formulário -->
+      <section class="etapa" id="etapa-form" aria-labelledby="titulo-oferecer">
+        <div class="titulo-linha">
+          <a class="icon-btn" href="../busca/index.html" data-back aria-label="Voltar para a busca"><svg aria-hidden="true"><use href="#i-voltar"/></svg></a>
+          <div>
+            <p class="muted"><span data-nome>Ana</span>, vai de carro?</p>
+            <h1 id="titulo-oferecer">Oferecer carona</h1>
+          </div>
+        </div>
+
+        <form class="form" id="form-oferecer" novalidate autocomplete="off">
+          <section class="bloco" aria-labelledby="titulo-trajeto">
+            <h2 id="titulo-trajeto">Trajeto</h2>
+            <div class="rota-linha">
+              <label class="field">
+                <span class="field-label">Saindo de</span>
+                <span class="field-box"><svg class="ico" aria-hidden="true"><use href="#i-pin"/></svg><select id="origem" name="origem"></select></span>
+              </label>
+              <button type="button" class="icon-btn trocar" data-trocar aria-label="Inverter origem e destino"><svg aria-hidden="true"><use href="#i-trocar"/></svg></button>
+              <label class="field">
+                <span class="field-label">Indo para</span>
+                <span class="field-box"><svg class="ico" aria-hidden="true"><use href="#i-pin"/></svg><select id="destino" name="destino"></select></span>
+              </label>
+            </div>
+            <label class="field" data-campo-ponto>
+              <span class="field-label">Ponto de embarque</span>
+              <span class="field-box"><svg class="ico" aria-hidden="true"><use href="#i-pessoas"/></svg><select id="ponto" name="ponto"></select></span>
+            </label>
+          </section>
+
+          <section class="bloco" aria-labelledby="titulo-quando">
+            <h2 id="titulo-quando">Quando</h2>
+            <div class="chips" role="radiogroup" aria-label="Dia">
+              <label class="chip"><input type="radio" name="dia" value="Hoje" checked><span>Hoje</span></label>
+              <label class="chip"><input type="radio" name="dia" value="Amanhã"><span>Amanhã</span></label>
+              <label class="chip"><input type="radio" name="dia" value="Sex, 27"><span>Sex, 27</span></label>
+            </div>
+            <div class="linha-2">
+              <label class="field">
+                <span class="field-label">Horário de saída</span>
+                <span class="field-box"><svg class="ico" aria-hidden="true"><use href="#i-relogio"/></svg>
+                  <select id="hora" name="hora">
+                    <option>06:40</option><option>07:00</option><option selected>07:20</option><option>07:40</option><option>12:10</option><option>17:30</option><option>18:10</option>
+                  </select>
+                </span>
+              </label>
+              <div class="field">
+                <span class="field-label" id="rot-vagas">Vagas para passageiros</span>
+                <div class="field-box stepper" role="group" aria-labelledby="rot-vagas">
+                  <button type="button" data-menos aria-label="Menos uma vaga">−</button>
+                  <output id="qtd-vagas" aria-live="polite">3</output>
+                  <button type="button" data-mais aria-label="Mais uma vaga">+</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="bloco" aria-labelledby="titulo-carro">
+            <h2 id="titulo-carro">Seu carro</h2>
+            <div class="linha-2 carro-linha">
+              <div class="field" data-validar="carro">
+                <label class="field-label" for="carro">Modelo e cor</label>
+                <div class="field-box">
+                  <svg class="ico" aria-hidden="true"><use href="#i-carro"/></svg>
+                  <input id="carro" name="carro" type="text" placeholder="Ex.: Fiat Argo vermelho" aria-describedby="carro-msg">
+                  <svg class="ico field-status" aria-hidden="true"><use href="#i-checkCirc"/></svg>
+                </div>
+                <p class="field-msg" id="carro-msg"></p>
+              </div>
+              <div class="field" data-validar="placa">
+                <label class="field-label" for="placa">Placa</label>
+                <div class="field-box">
+                  <input id="placa" name="placa" type="text" placeholder="ABC-1D23" maxlength="8" autocapitalize="characters" aria-describedby="placa-msg">
+                  <svg class="ico field-status" aria-hidden="true"><use href="#i-checkCirc"/></svg>
+                </div>
+                <p class="field-msg" id="placa-msg"></p>
+              </div>
+            </div>
+            <div class="chips" aria-label="Preferências da viagem">
+              <label class="chip"><input type="checkbox" name="tags" value="Ar-condicionado"><span>Ar-condicionado</span></label>
+              <label class="chip"><input type="checkbox" name="tags" value="Aceita mochila" checked><span>Aceita mochila</span></label>
+              <label class="chip"><input type="checkbox" name="tags" value="Música baixa"><span>Música baixa</span></label>
+              <label class="chip"><input type="checkbox" name="tags" value="Só mulheres"><span>Só mulheres</span></label>
+              <label class="chip"><input type="checkbox" name="tags" value="Pet friendly"><span>Pet friendly</span></label>
+            </div>
+          </section>
+
+          <section class="bloco" aria-labelledby="titulo-custo">
+            <div class="bloco-topo">
+              <h2 id="titulo-custo">Divisão do custo</h2>
+              <span class="tag" data-km></span>
+            </div>
+            <div class="barra-cotas" aria-hidden="true"></div>
+            <dl class="conta">
+              <div><dt>Combustível do trajeto (estimativa)</dt><dd data-f="combustivel"></dd></div>
+              <div><dt>Desgaste do carro</dt><dd data-f="desgaste"></dd></div>
+              <div class="conta-total"><dt>Custo da viagem ÷ <span data-f="lugares"></span> lugares</dt><dd data-f="custo"></dd></div>
+            </dl>
+            <p class="dica"><svg class="ico" aria-hidden="true"><use href="#i-dinheiro"/></svg><span data-dica></span></p>
+          </section>
+
+          <div class="rodape-pagar">
+            <dl class="totais">
+              <div><dt>Cada passageiro paga</dt><dd data-f="parte"></dd></div>
+            </dl>
+            <button type="submit" class="btn btn-brand btn-block">
+              <span class="btn-label">Publicar carona</span><span class="spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Etapa: publicada -->
+      <section class="etapa ok" id="etapa-ok" hidden aria-live="polite" aria-labelledby="titulo-ok">
+        <svg class="selo" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="36"/><path d="M25 41 l10 10 l21 -22"/></svg>
+        <h1 id="titulo-ok">Carona publicada!</h1>
+        <p class="muted">Sua carona está no ar. Avisamos você no e-mail e no WhatsApp a cada vaga reservada.</p>
+        <div class="ticket">
+          <div class="ticket-topo">
+            <span class="muted">Código da carona</span>
+            <b class="ticket-cod" data-f="codigo"></b>
+          </div>
+          <dl class="ticket-dados">
+            <div><dt>Saída</dt><dd data-f="quando"></dd></div>
+            <div><dt>Vagas</dt><dd data-f="vagas"></dd></div>
+            <div class="largo"><dt>Trajeto</dt><dd data-f="trajeto"></dd></div>
+            <div class="largo"><dt>Embarque</dt><dd data-f="ponto"></dd></div>
+            <div><dt>Carro</dt><dd data-f="carro"></dd></div>
+            <div><dt>Por passageiro</dt><dd data-f="parte"></dd></div>
+          </dl>
+        </div>
+        <button type="button" class="btn btn-primary btn-block" data-outra>Oferecer outra carona</button>
+        <a class="btn btn-ghost btn-block" href="../busca/index.html" data-restart>Voltar ao início</a>
+      </section>
+    </main>
+
+    <aside class="palco" aria-label="Mapa do trajeto oferecido">
+      <div class="mapa" id="mapa"></div>
+    </aside>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="../shared/caronas.js"></script>
+  <script src="../shared/fluxo.js"></script>
+  <script src="../shared/mapa.js"></script>
+  <script src="oferecer.js"></script>
+</body>
+</html>
