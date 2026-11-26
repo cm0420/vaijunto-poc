@@ -21,6 +21,10 @@
 .legenda i { width: 10px; height: 10px; border-radius: 3px; background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line); }
 .legenda .motor i { background: var(--ink); box-shadow: none; }
 .legenda .voce i { background: var(--brand); box-shadow: none; }
+.cota.outro { background: var(--brand-soft); color: var(--brand-ink); }
+.cota.livre { background: transparent; color: var(--mute); outline: 1.5px dashed var(--mute); outline-offset: -1.5px; }
+.legenda .outro i { background: var(--brand-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent); }
+.legenda .livre i { background: transparent; box-shadow: none; outline: 1.5px dashed var(--mute); outline-offset: -1.5px; }
 
 .conta { display: grid; margin: 0; }
 .conta div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14px; }

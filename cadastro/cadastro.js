@@ -21,7 +21,10 @@
     Object.entries(forms).forEach(([k, f]) => { f.hidden = k !== aba.dataset.aba; });
     gsap.from(forms[aba.dataset.aba].children, { autoAlpha: 0, y: 8, stagger: 0.04, duration: d(0.3) });
   }));
-  $("[data-esqueci]").addEventListener("click", () => VJ.toast("Link de nova senha enviado pro seu e-mail", "mail"));
+  $("[data-esqueci]").addEventListener("click", () => {
+    if (!validarLogin("email")) { $("#login-email").focus(); return; }
+    VJ.toast(`Link de nova senha enviado para ${$("#login-email").value.trim().toLowerCase()}`, "mail");
+  });
   $$("[data-sem-link]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); VJ.toast("Termos de uso: fora do escopo do protótipo", "livro"); }));
 
   // ---------- Máscara de celular ----------
@@ -100,6 +103,8 @@
 
   // ---------- Envio do cadastro ----------
   let usuario = { nome: "Ana Souza", email: "ana.souza@ufvjm.edu.br", perfil: "Passageiro" };
+  let modo = "cadastro"; // "cadastro" ou "login": muda o texto da tela final
+  let senhaCadastro = "";
   forms.cadastro.addEventListener("submit", (e) => {
     e.preventDefault();
     const invalidos = Object.keys(REGRAS).filter((n) => !validar(n, true));
@@ -114,17 +119,62 @@
       email: $("#email").value.trim().toLowerCase(),
       perfil: { passageiro: "Passageiro", motorista: "Motorista", ambos: "Passageiro e motorista" }[$('input[name="perfil"]:checked').value],
     };
+    senhaCadastro = senha.value;
+    modo = "cadastro";
     carregar(e.submitter || forms.cadastro.querySelector("[type=submit]"), 800, () => irPara("#etapa-codigo"));
   });
 
+  // ---------- Login ----------
+  // Mock: confere o formato; se a conta foi criada neste navegador, confere também a senha.
+  const REGRAS_LOGIN = {
+    email: [() => /^[^\s@]+@ufvjm\.edu\.br$/i.test($("#login-email").value.trim()), "Use seu e-mail que termina em @ufvjm.edu.br."],
+    senha: [() => $("#login-senha").value.length >= 8, "Digite sua senha (mínimo de 8 caracteres)."],
+  };
+  function marcarLogin(nome, valido, msgErro) {
+    const field = $(`[data-login="${nome}"]`);
+    field.classList.toggle("is-erro", !valido);
+    field.classList.toggle("is-ok", valido && nome === "email");
+    $(`#login-${nome}-msg`).textContent = valido ? "" : msgErro;
+    field.querySelector("input").setAttribute("aria-invalid", String(!valido));
+    return valido;
+  }
+  function validarLogin(nome) {
+    const [ok, erro] = REGRAS_LOGIN[nome];
+    return marcarLogin(nome, ok(), erro);
+  }
+  ["email", "senha"].forEach((nome) => {
+    const input = $(`#login-${nome}`);
+    input.addEventListener("blur", () => { if (input.value) validarLogin(nome); });
+    input.addEventListener("input", () => { if ($(`[data-login="${nome}"]`).classList.contains("is-erro")) validarLogin(nome); });
+  });
+  const nomeDoEmail = (email) => email.split("@")[0].split(/[._-]+/).filter(Boolean)
+    .map((p) => p[0].toUpperCase() + p.slice(1)).join(" ");
+
   forms.login.addEventListener("submit", (e) => {
     e.preventDefault();
-    const email = $("#login-email").value.trim();
-    if (email) usuario.email = email.toLowerCase();
-    if (/^[^.@]+\.[^@]+@/.test(usuario.email)) {
-      usuario.nome = usuario.email.split("@")[0].split(".").map((p) => p[0].toUpperCase() + p.slice(1)).join(" ");
+    const invalidos = ["email", "senha"].filter((n) => !validarLogin(n));
+    if (invalidos.length) {
+      const primeiro = $(`[data-login="${invalidos[0]}"]`);
+      primeiro.querySelector("input").focus();
+      gsap.fromTo(primeiro, { x: -6 }, { x: 0, duration: d(0.4), ease: "elastic.out(1, 0.3)" });
+      return;
     }
-    carregar(e.submitter || forms.login.querySelector("[type=submit]"), 700, () => irPara("#etapa-ok"));
+    const email = $("#login-email").value.trim().toLowerCase();
+    const conta = VJ.contas.achar(email);
+    const btn = e.submitter || forms.login.querySelector("[type=submit]");
+    carregar(btn, 700, () => {
+      if (conta && conta.senha !== VJ.resumo($("#login-senha").value)) {
+        marcarLogin("senha", false, "Senha incorreta. Confira e tente de novo.");
+        $("#login-senha").select();
+        gsap.fromTo($('[data-login="senha"]'), { x: -6 }, { x: 0, duration: d(0.4), ease: "elastic.out(1, 0.3)" });
+        return;
+      }
+      usuario = conta
+        ? { nome: conta.nome, email, perfil: conta.perfil }
+        : { nome: nomeDoEmail(email), email, perfil: "Passageiro" };
+      modo = "login";
+      irPara("#etapa-ok");
+    });
   });
 
   // ---------- Troca de etapa ----------
@@ -200,7 +250,10 @@
     e.preventDefault();
     if (btnConfirmar.disabled) return;
     clearInterval(timer);
-    carregar(btnConfirmar, 700, () => irPara("#etapa-ok"));
+    carregar(btnConfirmar, 700, () => {
+      VJ.contas.salvar({ ...usuario, senha: VJ.resumo(senhaCadastro) });
+      irPara("#etapa-ok");
+    });
   });
 
   // ---------- Pronto ----------
@@ -211,7 +264,26 @@
     $("[data-email-ok]").textContent = usuario.email;
     $("[data-perfil-ok]").textContent = usuario.perfil;
     $("[data-avatar-ok]").textContent = VJ.iniciais(usuario.nome);
-    $("[data-next]").href = "../busca/index.html" + VJ.qs({ nome: primeiro });
+    const login = modo === "login";
+    $("[data-saudacao-ok]").textContent = login ? "Que bom te ver" : "Tudo pronto";
+    $("[data-lead-ok]").textContent = login
+      ? "Você entrou na sua conta. Pra onde vamos hoje?"
+      : "Sua conta está ativa. Agora é só dizer pra onde você vai.";
+    // Botões conforme o perfil: motorista começa oferecendo, passageiro buscando, "os dois" vê as duas opções
+    const busca = "../busca/index.html" + VJ.qs({ nome: primeiro });
+    const oferecer = "../oferecer/index.html" + VJ.qs({ nome: primeiro });
+    const principal = $("#etapa-ok [data-next]:not([data-oferecer])");
+    const segundo = $("#etapa-ok [data-oferecer]");
+    const txtBusca = login ? "Buscar uma carona" : "Buscar minha primeira carona";
+    const txtOferecer = login ? "Oferecer uma carona" : "Oferecer minha primeira carona";
+    if (usuario.perfil === "Motorista") {
+      principal.href = oferecer; $("[data-next-txt]").textContent = txtOferecer;
+      segundo.href = busca; $("[data-oferecer-txt]").textContent = "Buscar uma carona";
+    } else {
+      principal.href = busca; $("[data-next-txt]").textContent = txtBusca;
+      segundo.href = oferecer; $("[data-oferecer-txt]").textContent = "Oferecer uma carona";
+    }
+    segundo.hidden = usuario.perfil === "Passageiro";
     const nav = $(".passos .passo-linha i");
     gsap.timeline({ defaults: { ease: "power3.out" } })
       .from(".selo", { scale: 0, rotation: -60, duration: d(0.6), ease: "back.out(1.8)" })

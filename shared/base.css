@@ -183,6 +183,11 @@ a { color: inherit; }
   font-size: 14px; font-weight: 600; box-shadow: var(--sh-3);
 }
 .toast .ico { color: var(--lime); }
+.toast { pointer-events: none; } /* o aviso nunca bloqueia o clique no botão embaixo dele */
+/* No computador o aviso fica centralizado no painel (não sobre o mapa), no alto, sem cobrir os botões do rodapé */
+@media (min-width: 901px) {
+  .toast { left: calc(var(--painel-w) / 2); top: 20px; bottom: auto; max-width: calc(var(--painel-w) - 32px); }
+}
 
 /* ---------- Mapa (Leaflet) ---------- */
 .leaflet-container { font: inherit; background: var(--surface-3); }

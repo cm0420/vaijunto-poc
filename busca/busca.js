@@ -27,6 +27,16 @@
   VJ.CARONAS.forEach((c) => {
     carros[c.id] = m.carro(c.iCarro, c.hue);
     gsap.from(carros[c.id].el(), { scale: 0, duration: d(0.5), ease: "back.out(2)", delay: d(1.2 + c.id * 0.15), clearProps: "transform" });
+    // Clicar no carro do mapa abre a carona (se ela couber na busca atual)
+    carros[c.id].el().title = `${c.motorista} · sai ${c.saida}`;
+    carros[c.id].on("click", () => {
+      if (!pDet.hidden && pDet.dataset.id === String(c.id)) return;
+      if (caronas.length && !caronas.includes(c)) {
+        VJ.toast(`${c.motorista.split(" ")[0]} não tem vagas para ${lugares} passageiros`, "pessoas");
+        return;
+      }
+      abrirDetalhe(c, lista.querySelector(`.carona[data-id="${c.id}"]`));
+    });
   });
   let pinEmbarque = null;
   function focarNoMapa(c) {
@@ -191,7 +201,10 @@
     pDet.querySelector(".avatar").style.setProperty("--hue", c.hue);
     pDet.querySelector("[data-f-match]").setAttribute("aria-label", `${c.match}% de match com sua rota`);
     pDet.querySelector("[data-f-tags]").innerHTML = c.tags.map((t, i) => `<span class="tag${i === 0 ? " tag-brand" : ""}">${t}</span>`).join("");
-    pDet.querySelector("[data-next]").href = "../pagamento/index.html" + VJ.qs({ carona: c.id, nome });
+    // A busca (passageiros, horário, dia) vai junto para o pagamento poder voltar à mesma lista
+    const dia = $('input[name="dia"]:checked').value;
+    pDet.querySelector("[data-next]").href = "../pagamento/index.html" + VJ.qs({ carona: c.id, nome, p: lugares, hora: $("#hora").value, dia });
+    pDet.dataset.id = c.id;
 
     pBusca.hidden = true;
     pDet.hidden = false;
@@ -214,4 +227,15 @@
     $(".painel").scrollTo(0, resultados.offsetTop - 16);
     if (origemFoco) origemFoco.focus({ preventScroll: true });
   });
+
+  // ---------- Volta do pagamento: refaz a mesma busca ----------
+  $("[data-oferecer]").href = "../oferecer/index.html" + VJ.qs({ nome });
+  $(".logo").href = VJ.inicio(nome);
+  const pVolta = Number(VJ.param("p", 0));
+  if (pVolta) setLugares(pVolta);
+  const horaVolta = VJ.param("hora", "");
+  if (horaVolta && [...$("#hora").options].some((o) => o.value === horaVolta)) $("#hora").value = horaVolta;
+  const diaVolta = $(`input[name="dia"][value="${VJ.param("dia", "")}"]`);
+  if (diaVolta) diaVolta.checked = true;
+  if (VJ.param("voltar", "")) $("#form-busca").requestSubmit();
 })();

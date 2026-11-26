@@ -1,0 +1,68 @@
+/* ===== Tela Oferecer carona (motorista) — correção pós-teste livre 2 ===== */
+.etapa { display: grid; gap: 20px; }
+.titulo-linha { display: flex; align-items: center; gap: 12px; }
+.titulo-linha .muted { font-size: 14px; }
+.form { display: grid; gap: 22px; }
+.bloco { display: grid; gap: 12px; }
+.bloco-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.rota-linha { display: grid; grid-template-columns: 1fr 42px 1fr; gap: 8px; align-items: end; }
+.rota-linha .trocar { margin-bottom: 5px; }
+.rota-linha > *, .linha-2 > *, #oferecer .field-box { min-width: 0; } /* deixa os campos encolherem dentro do painel */
+#oferecer .field-box input { width: 0; }
+.field-box select { width: 100%; min-width: 0; cursor: pointer; font-weight: 600; appearance: none; text-overflow: ellipsis; }
+.linha-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.carro-linha { grid-template-columns: 1.4fr 1fr; }
+.carro-linha .field-box input#placa { text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+
+.stepper { justify-content: space-between; }
+.stepper output { font-weight: 800; font-size: 17px; }
+.stepper button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--surface); box-shadow: var(--sh-1); font-weight: 700; font-size: 16px; line-height: 1; }
+.stepper button:hover { background: var(--surface-3); }
+.stepper button[disabled] { opacity: .35; cursor: default; }
+
+/* Divisão (mesma linguagem visual do pagamento) */
+.barra-cotas { display: flex; gap: 4px; height: 44px; }
+.cota { flex: 1; display: grid; place-items: center; border-radius: var(--r-sm); background: var(--brand-soft); color: var(--brand-ink); font-size: 12px; font-weight: 700; transform-origin: left; }
+.cota.motor { background: var(--ink); color: #fff; }
+.conta { display: grid; margin: 0; }
+.conta div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14px; }
+.conta dt { color: var(--body); }
+.conta dd { margin: 0; font-weight: 700; }
+.conta-total { border-top: 1px dashed var(--line); }
+.conta-total dt, .conta-total dd { color: var(--ink); font-weight: 700; }
+.dica { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--r-md); background: var(--brand-soft); color: var(--brand-ink); font-size: 13px; font-weight: 600; }
+
+.rodape-pagar {
+  position: sticky; bottom: -40px; z-index: 5; display: grid; gap: 10px;
+  margin: 0 -32px -40px; padding: 14px 32px 24px; background: var(--surface); border-top: 1px solid var(--line);
+}
+.totais { display: grid; margin: 0; }
+.totais div { display: flex; justify-content: space-between; font-size: 13px; color: var(--body); }
+.totais dd { margin: 0; font-weight: 800; font-size: 15px; color: var(--ink); }
+
+/* Publicada */
+.ok { justify-items: center; text-align: center; padding-top: 8px; }
+.selo { width: 88px; height: 88px; }
+.selo circle { fill: var(--brand); }
+.selo path { fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; }
+.ticket { width: 100%; border-radius: var(--r-lg); background: var(--surface-2); text-align: left; overflow: hidden; }
+.ticket-topo { position: relative; display: grid; gap: 2px; padding: 16px 18px; border-bottom: 2px dashed var(--line); }
+.ticket-topo::before, .ticket-topo::after { content: ""; position: absolute; bottom: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); }
+.ticket-topo::before { left: -9px; }
+.ticket-topo::after { right: -9px; }
+.ticket-topo .muted { font-size: 12px; }
+.ticket-cod { font-size: 22px; letter-spacing: .04em; }
+.ticket-dados { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; padding: 16px 18px; }
+.ticket-dados .largo { grid-column: 1 / -1; }
+.ticket-dados dt { font-size: 12px; color: var(--body); }
+.ticket-dados dd { margin: 0; font-weight: 700; }
+
+@media (max-width: 900px) {
+  .rodape-pagar { margin: 0 -16px -40px; padding: 14px 16px 20px; bottom: 0; }
+}
+@media (max-width: 420px) {
+  .rota-linha { grid-template-columns: 1fr; }
+  .rota-linha .trocar { justify-self: center; margin: 0; }
+  .carro-linha { grid-template-columns: 1fr; }
+}

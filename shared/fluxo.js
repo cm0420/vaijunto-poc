@@ -15,6 +15,23 @@
     Object.entries(extra || {}).forEach(([k, v]) => p.set(k, v));
     return "?" + p.toString();
   };
+  // "Início" de quem já entrou na conta = tela de Busca com o nome (não volta para o cadastro)
+  VJ.inicio = (nome) => "../busca/index.html?nome=" + encodeURIComponent(nome || VJ.param("nome", "Ana"));
+
+  // Contas criadas neste navegador (mock: sem backend). A senha nunca é guardada, só um resumo dela.
+  const CHAVE_CONTAS = "vj-contas";
+  VJ.resumo = (s) => { let h = 5381; for (const ch of s) h = ((h << 5) + h + ch.charCodeAt(0)) >>> 0; return h.toString(36); };
+  VJ.contas = {
+    todas() { try { return JSON.parse(localStorage.getItem(CHAVE_CONTAS)) || {}; } catch (_) { return {}; } },
+    achar(email) { return this.todas()[String(email).toLowerCase()] || null; },
+    salvar(conta) {
+      try {
+        const todas = this.todas();
+        todas[conta.email.toLowerCase()] = conta;
+        localStorage.setItem(CHAVE_CONTAS, JSON.stringify(todas));
+      } catch (_) { /* navegação privada: segue sem lembrar */ }
+    },
+  };
 
   // Ícones de linha (stroke) usados nas telas: <svg class="ico"><use href="#i-carro"/></svg>
   const ICONES = {

@@ -99,19 +99,22 @@
         </form>
 
         <form class="form" id="form-login" role="tabpanel" aria-labelledby="aba-login" hidden novalidate>
-          <div class="field">
+          <div class="field" data-login="email">
             <label class="field-label" for="login-email">E-mail institucional</label>
             <div class="field-box">
               <svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>
-              <input id="login-email" type="email" autocomplete="email" placeholder="voce@ufvjm.edu.br">
+              <input id="login-email" type="email" autocomplete="email" placeholder="voce@ufvjm.edu.br" aria-describedby="login-email-msg">
+              <svg class="ico field-status" aria-hidden="true"><use href="#i-checkCirc"/></svg>
             </div>
+            <p class="field-msg" id="login-email-msg"></p>
           </div>
-          <div class="field">
+          <div class="field" data-login="senha">
             <label class="field-label" for="login-senha">Senha</label>
             <div class="field-box">
               <svg class="ico" aria-hidden="true"><use href="#i-cadeado"/></svg>
-              <input id="login-senha" type="password" autocomplete="current-password" placeholder="Sua senha">
+              <input id="login-senha" type="password" autocomplete="current-password" placeholder="Sua senha" aria-describedby="login-senha-msg">
             </div>
+            <p class="field-msg" id="login-senha-msg"></p>
           </div>
           <button type="submit" class="btn btn-primary btn-block">
             <span class="btn-label">Entrar</span><span class="spinner" aria-hidden="true"></span>
@@ -146,8 +149,8 @@
           <circle class="selo-fundo" cx="40" cy="40" r="36"/>
           <path class="selo-check" d="M25 41 l10 10 l21 -22"/>
         </svg>
-        <h1 id="titulo-ok">Tudo pronto, <span data-nome-ok>Ana</span>!</h1>
-        <p class="lead muted">Sua conta está ativa. Agora é só dizer pra onde você vai.</p>
+        <h1 id="titulo-ok"><span data-saudacao-ok>Tudo pronto</span>, <span data-nome-ok>Ana</span>!</h1>
+        <p class="lead muted" data-lead-ok>Sua conta está ativa. Agora é só dizer pra onde você vai.</p>
         <div class="card cartao-perfil">
           <span class="avatar avatar-lg" data-avatar-ok style="--hue:200">AS</span>
           <div>
@@ -157,7 +160,10 @@
           </div>
         </div>
         <a class="btn btn-brand btn-block" href="../busca/index.html" data-next>
-          Buscar minha primeira carona <svg class="ico" aria-hidden="true"><use href="#i-seta"/></svg>
+          <span data-next-txt>Buscar minha primeira carona</span> <svg class="ico" aria-hidden="true"><use href="#i-seta"/></svg>
+        </a>
+        <a class="btn btn-soft btn-block" href="../oferecer/index.html" data-next data-oferecer hidden>
+          <svg class="ico" aria-hidden="true"><use href="#i-carro"/></svg> <span data-oferecer-txt>Oferecer uma carona</span>
         </a>
       </section>
     </main>

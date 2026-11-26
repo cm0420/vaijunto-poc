@@ -13,7 +13,9 @@
   const total = () => Math.max(0, parte + gorjeta - desconto);
 
   const preencher = (campo, valor) => $$(`[data-f="${campo}"]`).forEach((el) => { el.textContent = valor; });
-  $("[data-back]").href = "../busca/index.html?nome=" + encodeURIComponent(nome);
+  // Voltar refaz a mesma busca (passageiros, horário e dia vêm na URL); "início" é a Busca, sem sair da conta
+  $("[data-back]").href = "../busca/index.html" + VJ.qs({ voltar: 1 });
+  $$("[data-restart], .logo").forEach((a) => { a.href = VJ.inicio(nome); });
   $$("[data-avatar]").forEach((a) => { a.textContent = VJ.iniciais(c.motorista); a.style.setProperty("--hue", c.hue); });
   preencher("motorista", c.motorista);
   preencher("primeiro", c.motorista.split(" ")[0]);
@@ -30,16 +32,21 @@
   preencher("parte", VJ.brl(parte));
 
   // ---------- Barra de cotas ----------
-  const pessoas = ["Motorista", "Você", ...Array(c.ocupantes - 2).fill("Outro passageiro")];
-  $(".barra-cotas").innerHTML = pessoas.map((p, i) =>
-    `<span class="cota${i === 0 ? " motor" : i === 1 ? " voce" : ""}">${VJ.brl(parte)}</span>`).join("");
-  $(".legenda").innerHTML = [["motor", c.motorista.split(" ")[0] + " (motorista)"], ["voce", "Você"], ["", "Outros passageiros"]]
-    .slice(0, c.ocupantes > 2 ? 3 : 2).map(([k, t]) => `<li class="${k}"><i></i>${t}</li>`).join("");
+  // O custo é dividido pelos lugares do carro (c.ocupantes = lugares, contando o motorista).
+  // Quem já reservou + você ocupam lugares; o que sobra fica livre e não muda a sua parte.
+  const jaReservados = Math.max(0, c.ocupantes - c.vagas - 1);
+  const livres = Math.max(0, c.vagas - 1);
+  const cotas = [["motor", "Motorista"], ...Array(jaReservados).fill(["outro", "Outro passageiro"]), ["voce", "Você"], ...Array(livres).fill(["livre", "Lugar livre"])];
+  $(".barra-cotas").innerHTML = cotas.map(([k, t]) => `<span class="cota ${k}" title="${t}">${VJ.brl(parte)}</span>`).join("");
+  $(".legenda").innerHTML = [
+    ["motor", c.motorista.split(" ")[0] + " (motorista)", true], ["voce", "Você", true],
+    ["outro", jaReservados > 1 ? "Outros passageiros" : "Outro passageiro", jaReservados > 0],
+    ["livre", livres > 1 ? "Lugares livres" : "Lugar livre", livres > 0],
+  ].filter((l) => l[2]).map(([k, t]) => `<li class="${k}"><i></i>${t}</li>`).join("");
   const dica = $("[data-dica]");
-  const vagasDepois = c.vagas - 1;
-  if (vagasDepois > 0) {
-    dica.querySelector("span").textContent = `Ainda sobra${vagasDepois > 1 ? "m" : ""} ${vagasDepois} ${vagasDepois > 1 ? "vagas" : "vaga"}. Se mais alguém entrar, sua parte cai para ${VJ.brl(custo / (c.ocupantes + 1))} e a diferença volta pra você.`;
-  } else dica.hidden = true;
+  dica.querySelector("span").textContent = livres > 0
+    ? `Sua parte é fixa: o custo é dividido pelos ${c.ocupantes} lugares do carro. ${livres > 1 ? `Ainda há ${livres} lugares livres` : "Ainda há 1 lugar livre"}, e se ninguém mais entrar o motorista cobre essa parte.`
+    : `Com você o carro lota: o custo fica dividido entre as ${c.ocupantes} pessoas.`;
 
   // ---------- QR ilustrativo ----------
   (function desenharQR() {
@@ -100,7 +107,8 @@
   setInterval(() => { seg = Math.max(0, seg - 1); $("[data-expira]").textContent = `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, "0")}`; }, 1000);
   $("[data-copiar]").addEventListener("click", (e) => {
     const btn = e.currentTarget;
-    try { navigator.clipboard && navigator.clipboard.writeText($("[data-copia]").textContent); } catch (_) { /* mock */ }
+    // writeText devolve uma Promise: sem o .catch, navegador sem permissão (ou arquivo aberto do disco) gera erro no console
+    try { navigator.clipboard && navigator.clipboard.writeText($("[data-copia]").textContent).catch(() => {}); } catch (_) { /* mock */ }
     btn.querySelector("span").textContent = "Copiado!";
     gsap.fromTo(btn, { scale: 0.92 }, { scale: 1, duration: d(0.4), ease: "back.out(3)" });
     setTimeout(() => { btn.querySelector("span").textContent = "Copiar código"; }, 2000);
